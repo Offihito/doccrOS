@@ -12,6 +12,8 @@
 
 OS_NAME ?= doccrOS
 ARCH ?= x86_64
+ARCH_DIR := doccr/kernel/arch/$(ARCH)
+ARCH_UPPER := $(shell echo $(ARCH) | tr a-z A-Z)
 
 # Build toolchain
 CC := $(ARCH)-elf-gcc
@@ -25,9 +27,19 @@ VAS  = @echo "   AS   $<" && $(AS)
 VLD  = @echo "   LD   $@" && $(LD)
 
 # Compiler Flags
-COMMON_FLAGS += -I $(INCLUDE_DIR) -I $(SRC_DIR) -I doccr/ -I doccr/kernel/ -ffreestanding -fno-stack-protector -fno-lto \
-                -fno-PIE -fno-pic -m64 -march=x86-64 -mno-80387 -mno-mmx \
-                -mno-sse -mno-sse2 -mno-red-zone -mcmodel=kernel -Wall -Wextra -Wpedantic
+ifeq ($(ARCH),x86_64)
+ARCH_FLAGS := -m64 -march=x86-64 -mno-80387 -mno-mmx -mno-sse -mno-sse2 \
+              -mno-red-zone -mcmodel=kernel
+else ifeq ($(ARCH),aarch64)
+ARCH_FLAGS := -mgeneral-regs-only -mcmodel=large
+endif
+
+COMMON_FLAGS += -I $(INCLUDE_DIR) -I $(SRC_DIR) -I doccr/ -I doccr/kernel/ \
+                -I $(ARCH_DIR) \
+                -ffreestanding -fno-stack-protector -fno-lto \
+                -fno-PIE -fno-pic $(ARCH_FLAGS) \
+                -Wall -Wextra -Wpedantic -DARCH_$(ARCH_UPPER)
+
 CFLAGS ?= $(COMMON_FLAGS) -std=c23
 CXXFLAGS ?= $(COMMON_FLAGS) -std=c++17 -fno-exceptions -fno-rtti
 LDFLAGS ?= -nostdlib -static -no-pie -z text -z max-page-size=0x1000

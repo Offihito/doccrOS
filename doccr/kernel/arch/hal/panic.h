@@ -1,1 +1,2 @@
-#include <kernel/arch/x86_64/exceptions/panic.h>
+#pragma once
+#include <exceptions/panic.h>

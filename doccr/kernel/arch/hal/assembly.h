@@ -1,1 +1,2 @@
-#include <kernel/arch/x86_64/assembly.h>
+#pragma once
+#include <assembly.h>

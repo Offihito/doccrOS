@@ -16,7 +16,11 @@ LIMINE_DIR := $(INCLUDE_DIR)/limine
 LIMINE_TOOL := $(LIMINE_DIR)/limine
 
 # Find all C, C++ and Assembly files
-SRCS = $(shell find $(SRC_DIR) -name "*.c" -or -name "*.cpp" -or -name "*.asm")
+COMMON_SRCS := $(shell find $(SRC_DIR) -path "$(SRC_DIR)/kernel/arch" -prune -o \
+               \( -name "*.c" -or -name "*.cpp" -or -name "*.asm" \) -print)
+ARCH_SRCS := $(shell find $(ARCH_DIR) -name "*.c" -or -name "*.cpp" -or -name "*.asm")
+
+SRCS = $(COMMON_SRCS) $(ARCH_SRCS)
 OBJS = $(SRCS:%=$(BUILD_DIR)/%.o)
 
 .PHONY: all fetchDeps disk run clean

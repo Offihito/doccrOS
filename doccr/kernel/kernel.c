@@ -25,12 +25,9 @@
 #include <kernel/screen/bootscreen/boot.h>
 
 // CPU
-#include <kernel/arch/x86_64/cpu.h>
-#include <kernel/arch/x86_64/gdt/gdt.h>
-#include <kernel/arch/x86_64/idt/idt.h>
-#include <kernel/arch/x86_64/exceptions/irq.h>
-#include <kernel/arch/x86_64/exceptions/timer.h>
-#include <kernel/arch/x86_64/exceptions/panic.h>
+#include <kernel/arch/hal/cpu.h>
+#include <kernel/arch/hal/interrupts.h>
+#include <kernel/arch/hal/timer.h>
 #include <kernel/pci/pci.h>
 
 // Memory
@@ -82,8 +79,7 @@ void _start(void)
         // Initialize the CPU
         cpu_detect();
         log("[CPU]", "Detected CPU\n");
-        gdt_init();
-        idt_init();
+        cpu_early_init();
         timer_init(1000);
         timer_set_boot_time(); //for uptime command
     }
