@@ -12,6 +12,7 @@
 
 #include "print.h"
 #include <kernel/screen/bootscreen/boot.h>
+#include <kernel/communication/serial.h>
 
 // print.c is basically just a thin wrapper around bs.* now
 // old direct-framebuffer drawing moved to boot.c
@@ -24,6 +25,7 @@ void putchar(char c, u32 color)
 void string(const char *str, u32 color)
 {
     bs.Print(str, color);
+    printf(str);
 }
 
 void printInt(int value, u32 color)
