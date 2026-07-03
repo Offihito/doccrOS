@@ -82,7 +82,7 @@ void _start(void)
     pci_init();
     process_init();
     sched_init();
-    module_init();
+    devices_init();
 
     //should not reach here
     #if USE_HCF == 1

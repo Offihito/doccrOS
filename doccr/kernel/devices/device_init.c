@@ -16,100 +16,100 @@
 #include <kernel/screen/colors.h>
 
 
-static driver_module *modules[MAX_MODULES];
-static int module_count = 0;
+static device_handler *devices[DEVICES_MAX_AMOUNT];
+static int device_count = 0;
 
-void module_init(void)
+void devices_init(void)
 {
-    log("[MOD]", "init module system\n");
-    for (int i = 0; i < MAX_MODULES; i++)
+    log("[DEV]", "init device system\n");
+    for (int i = 0; i < DEVICES_MAX_AMOUNT; i++)
     {
-        modules[i] = NULL;
+        devices[i] = NULL;
     }
-    module_count = 0;
+    device_count = 0;
 }
 
-int module_register(driver_module *module)
+int device_register(device_handler *device)
 {
-	if (!module || module_count >= MAX_MODULES)
+	if (!device || device_count >= DEVICES_MAX_AMOUNT)
 	{
-        log("[MOD]", "Module register failed: invalid module or max reached\n", warning);
+        log("[DEV]", "device register failed: invalid device or max reached\n", warning);
         return -1;
     }
 
     // check if already registered
-    for (int i = 0; i < module_count; i++)
+    for (int i = 0; i < device_count; i++)
     {
-        if (modules[i] == module) {
-            log("[MOD]", "Module already registered\n", warning);
+        if (devices[i] == device) {
+            log("[DEV]", "device already registered\n", warning);
             return -1;
         }
     }
 
     // call init if exists
-    if (module->init)
+    if (device->init)
     {
-        int ret = module->init();
+        int ret = device->init();
         if (ret != 0) {
-            log("[MOD]", "Module init failed, skipping registration\n", warning);
+            log("[DEV]", "device init failed, skipping registration\n", warning);
             return -1; /* don't add module if init fails */
         }
     }
 
-    modules[module_count++] = module;
+    devices[device_count++] = device;
     return 0;
 }
 
-void module_unregister(const char *name)
+void device_unregister(const char *name)
 {
     if (!name) return;
 
-    for (int i = 0; i < module_count; i++)
+    for (int i = 0; i < device_count; i++)
     {
-	    if (modules[i] && modules[i]->name && str_equals(modules[i]->name, name))
+	    if (devices[i] && devices[i]->name && str_equals(devices[i]->name, name))
 		{
 	        // call cleanup if exists
-	        if (modules[i]->fini) {
-	            modules[i]->fini();
+	        if (devices[i]->fini) {
+	            devices[i]->fini();
 	        }
 
 	        // shift array down
-	        for (int j = i; j < module_count - 1; j++) {
-	            modules[j] = modules[j + 1];
+	        for (int j = i; j < device_count - 1; j++) {
+	            devices[j] = devices[j + 1];
 	        }
-	        modules[module_count - 1] = NULL;
-	        module_count--;
+	        devices[device_count - 1] = NULL;
+	        device_count--;
 
-	        log("[MOD]", "Module unregistered\n", d);
+	        log("[DEV]", "device unregistered\n", d);
 	        return;
 	    }
     }
-    log("[MOD]", "Module to unregister not found\n", warning);
+    log("[DEV]", "device to unregister not found\n", warning);
 }
 
-driver_module* module_find(const char *name)
+device_handler* device_find(const char *name)
 {
     if (!name) return NULL;
 
-    for (int i = 0; i < module_count; i++)
+    for (int i = 0; i < device_count; i++)
     {
-        if (modules[i] && modules[i]->name && str_equals(modules[i]->name, name))
+        if (devices[i] && devices[i]->name && str_equals(devices[i]->name, name))
         {
-            return modules[i];
+            return devices[i];
         }
     }
     return NULL;
 }
 
-int module_get_count(void)
+int device_get_count(void)
 {
-    return module_count;
+    return device_count;
 }
 
-driver_module* module_get_by_index(int idx)
+device_handler* device_get_by_index(int idx)
 {
-    if (idx < 0 || idx >= module_count) {
+    if (idx < 0 || idx >= device_count) {
         return NULL;
     }
-    return modules[idx];
+    return devices[idx];
 }

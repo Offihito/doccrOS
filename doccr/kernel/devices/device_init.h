@@ -15,11 +15,11 @@
 
 #include <types.h>
 
-#define MAX_MODULES 256
+#define DEVICES_MAX_AMOUNT 256
 #define VERSION_NUM(major, minor, patch, build) \
     ((major << 24) | (minor << 16) | (patch << 8) | build)
 
-typedef struct driver_module {
+typedef struct device_handler {
     const char *name;
     const char *mount;      // mount point like /dev/console
     u32 version;        //actually not neccesary but cool
@@ -34,13 +34,13 @@ typedef struct driver_module {
     int (*read)(void *handle, void *buf, size_t count);
     int (*write)(void *handle, const void *buf, size_t count);
 
-} driver_module;
+} device_handler;
 
-void module_init(void);
-int module_register(driver_module *module);
-void module_unregister(const char *name);
-driver_module* module_find(const char *name);
-int module_get_count(void);
-driver_module* module_get_by_index(int idx);
+void devices_init(void);
+int device_register(device_handler *device);
+void device_unregister(const char *name);
+device_handler* device_find(const char *name);
+int device_get_count(void);
+device_handler* device_get_by_index(int idx);
 
 #endif
