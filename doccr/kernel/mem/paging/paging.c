@@ -5,8 +5,8 @@
  *
  * PROJECT: doccrOS
  * FILE: paging.c
- * CREATED BY: emex
- * MODIFIED BY: --
+ * CREATED BY: tsaraki
+ * MODIFIED BY: emex
  *
  */
 
@@ -23,6 +23,7 @@ extern u8 _kernel_start[];
 extern u8 _kernel_end[];
 
 static page_table_t *kernel_pml4 = NULL;
+static u64 hhdm_offset = 0;
 
 
 /// Summary
@@ -92,6 +93,62 @@ void paging_map_page(
     __asm__ volatile("invlpg (%0)" : : "r" (virtual_addr) : "memory");
 }
 
+u64* paging_get_physical_address(u64 virtual_addr)
+{
+    if (!kernel_pml4) return NULL;
+
+    u64 pml4_index = (virtual_addr >> 39) & 0x1FF;
+    u64 pdp_index  = (virtual_addr >> 30) & 0x1FF;
+    u64 pd_index   = (virtual_addr >> 21) & 0x1FF;
+    u64 pt_index   = (virtual_addr >> 12) & 0x1FF;
+    u64 page_offset = virtual_addr & 0xFFF;
+
+    if (!(kernel_pml4->entries[pml4_index] & PTE_PRESENT)) return NULL;
+    u64 pdpt_phys = kernel_pml4->entries[pml4_index] & 0x000FFFFFFFFFF000;
+    page_table_t *pdpt = (page_table_t*)(pdpt_phys + hhdm_offset);
+
+    if (!(pdpt->entries[pdp_index] & PTE_PRESENT)) return NULL;
+    u64 pd_phys = pdpt->entries[pdp_index] & 0x000FFFFFFFFFF000;
+    page_table_t *pd = (page_table_t*)(pd_phys + hhdm_offset);
+
+    if (!(pd->entries[pd_index] & PTE_PRESENT)) return NULL;
+    u64 pt_phys = pd->entries[pd_index] & 0x000FFFFFFFFFF000;
+    page_table_t *pt = (page_table_t*)(pt_phys + hhdm_offset);
+
+    if (!(pt->entries[pt_index] & PTE_PRESENT)) return NULL;
+    u64 phys_addr = (pt->entries[pt_index] & 0x000FFFFFFFFFF000) | page_offset;
+
+    return (u64*)phys_addr;
+}
+
+void paging_unmap_page(u64 virtual_addr)
+{
+    if (!kernel_pml4) return;
+
+    u64 pml4_index = (virtual_addr >> 39) & 0x1FF;
+    u64 pdp_index  = (virtual_addr >> 30) & 0x1FF;
+    u64 pd_index   = (virtual_addr >> 21) & 0x1FF;
+    u64 pt_index   = (virtual_addr >> 12) & 0x1FF;
+
+    if (!(kernel_pml4->entries[pml4_index] & PTE_PRESENT)) return;
+    u64 pdpt_phys = kernel_pml4->entries[pml4_index] & 0x000FFFFFFFFFF000;
+    page_table_t *pdpt = (page_table_t*)(pdpt_phys + hhdm_offset);
+
+    if (!(pdpt->entries[pdp_index] & PTE_PRESENT)) return;
+    u64 pd_phys = pdpt->entries[pdp_index] & 0x000FFFFFFFFFF000;
+    page_table_t *pd = (page_table_t*)(pd_phys + hhdm_offset);
+
+    if (!(pd->entries[pd_index] & PTE_PRESENT)) return;
+    u64 pt_phys = pd->entries[pd_index] & 0x000FFFFFFFFFF000;
+    page_table_t *pt = (page_table_t*)(pt_phys + hhdm_offset);
+
+    if (!(pt->entries[pt_index] & PTE_PRESENT)) return;
+
+    pt->entries[pt_index] = 0;
+
+    __asm__ volatile("invlpg (%0)" : : "r" (virtual_addr) : "memory");
+}
+
 /// Summary
 /// 2025/11/17 tsaraki
 /// limine already done paging
@@ -101,6 +158,7 @@ void paging_init(limine_hhdm_response_t *hpr) {
     u64 current_cr3;
     __asm__ volatile("mov %%cr3, %0" : "=r" (current_cr3));
 
+    hhdm_offset = hpr->offset;
     kernel_pml4 = (page_table_t*)((current_cr3 & 0x000FFFFFFFFFF000) + hpr->offset);
 
     u64 heap_frames_len = (HEAP_SIZE / PAGE_SIZE);
@@ -112,7 +170,7 @@ void paging_init(limine_hhdm_response_t *hpr) {
     for (u64 i = 0; i < heap_frames_len; i++) {
         u64 virt = HEAP_START + (i * PAGE_SIZE);
 
-        paging_map_page(hpr, virt, phys + i, PTE_PRESENT | PTE_WRITABLE);
+        paging_map_page(hpr, virt, phys + (i * PAGE_SIZE), PTE_PRESENT | PTE_WRITABLE);
     }
 
     // there should be paging of smth else
