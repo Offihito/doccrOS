@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: paging.h
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -31,9 +31,13 @@ typedef struct {
     u64 entries[512];
 } page_table_t;
 
-void paging_init(limine_hhdm_response_t *hpr);
-u64* paging_get_physical_address(u64 virtual_addr);
-void paging_map_page(limine_hhdm_response_t *hpr, u64 virtual_addr, u64 physical_addr, u64 flags);
-void paging_unmap_page(u64 virtual_addr);
+void          paging_init(limine_hhdm_response_t *hpr);
+u64          *paging_get_physical_address(u64 virtual_addr);
+void          paging_map_page(limine_hhdm_response_t *hpr, u64 virtual_addr, u64 physical_addr, u64 flags);
+void          paging_unmap_page(u64 virtual_addr);
+page_table_t *paging_get_kernel_pml4(void);
+u64           paging_get_hhdm_offset(void);
+void          paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 flags);
+void          paging_unmap_page_in(u64 pml4_phys, u64 virtual_addr);
 
 #endif

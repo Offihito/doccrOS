@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: physmem.h
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -40,5 +40,10 @@ u64 physmem_free_get(void);
 u64 physmem_alloc_to(u64 count);
 void physmem_free_to(u64 physmem_addr, u64 count);
 void physmem_init(limine_memmap_response_t *mpr, limine_hhdm_response_t *hpr);
+
+void physmem_frame_rc_inc(u64 phys_addr);
+u32  physmem_frame_rc_dec_and_get(u64 phys_addr);
+u32  physmem_frame_flags_get(u64 phys_addr);
+void physmem_frame_flags_set(u64 phys_addr, u32 flags);
 
 #endif

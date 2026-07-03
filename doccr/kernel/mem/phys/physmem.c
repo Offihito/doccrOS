@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: physmem.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -209,6 +209,8 @@ void physmem_init(limine_memmap_response_t *mpr, limine_hhdm_response_t *hpr) {
 
     u64 to_used = used_bytes_to_frame_count(physmem_size + bitmap_size);
     physmem_addr_mark_used((u64)physmem_pageframe_addr, to_used);
+
+    physmem_addr_mark_used(0, 1);
 }
 
 /// Summary
@@ -244,7 +246,6 @@ u64 physmem_alloc_to(u64 count) { //count is len of frames of size 4096
     if (all_free) {
         u64 physmem_addr = start_frame * PAGE_SIZE;
         physmem_addr_mark_used(physmem_addr, count);
-
         return physmem_addr;
     }
 
@@ -275,4 +276,30 @@ u64 physmem_free_get(void) {
         }
     }
     return count;
+}
+
+void physmem_frame_rc_inc(u64 phys_addr) {
+    u64 frame = phys_addr / PAGE_SIZE;
+    if (frame >= physmem_total) return;
+    physmem_pageframes[frame].rc++;
+}
+
+u32 physmem_frame_rc_dec_and_get(u64 phys_addr) {
+    u64 frame = phys_addr / PAGE_SIZE;
+    if (frame >= physmem_total) return 0;
+    if (physmem_pageframes[frame].rc > 0)
+        physmem_pageframes[frame].rc--;
+    return physmem_pageframes[frame].rc;
+}
+
+u32 physmem_frame_flags_get(u64 phys_addr) {
+    u64 frame = phys_addr / PAGE_SIZE;
+    if (frame >= physmem_total) return 0;
+    return physmem_pageframes[frame].flags;
+}
+
+void physmem_frame_flags_set(u64 phys_addr, u32 flags) {
+    u64 frame = phys_addr / PAGE_SIZE;
+    if (frame >= physmem_total) return;
+    physmem_pageframes[frame].flags = flags;
 }
