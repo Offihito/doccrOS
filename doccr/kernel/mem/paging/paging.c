@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: paging.c
  * CREATED BY: tsaraki
- * MODIFIED BY: emex
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -173,8 +173,96 @@ void paging_init(limine_hhdm_response_t *hpr) {
         paging_map_page(hpr, virt, phys + (i * PAGE_SIZE), PTE_PRESENT | PTE_WRITABLE);
     }
 
-    // there should be paging of smth else
-    // if it need to be done while kernel initializing
-
     return;
+}
+
+page_table_t *paging_get_kernel_pml4(void)
+{
+    return kernel_pml4;
+}
+
+u64 paging_get_hhdm_offset(void)
+{
+    return hhdm_offset;
+}
+
+void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 flags)
+{
+    u64 pml4_index = (virtual_addr >> 39) & 0x1FF;
+    u64 pdp_index  = (virtual_addr >> 30) & 0x1FF;
+    u64 pd_index   = (virtual_addr >> 21) & 0x1FF;
+    u64 pt_index   = (virtual_addr >> 12) & 0x1FF;
+
+    page_table_t *pml4 = (page_table_t *)(pml4_phys + hhdm_offset);
+
+    page_table_t *pdpt = NULL;
+    if (!(pml4->entries[pml4_index] & PTE_PRESENT))
+    {
+        u64 pdpt_phys = physmem_alloc_to(1);
+        if (!pdpt_phys) panic("paging_map_page_in: could not allocate PDPT");
+        pml4->entries[pml4_index] = (pdpt_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
+        pdpt = (page_table_t *)(pdpt_phys + hhdm_offset);
+        memset(pdpt, 0, PAGE_SIZE);
+    }
+    else
+    {
+        pdpt = (page_table_t *)((pml4->entries[pml4_index] & 0x000FFFFFFFFFF000) + hhdm_offset);
+    }
+
+    page_table_t *pd = NULL;
+    if (!(pdpt->entries[pdp_index] & PTE_PRESENT))
+    {
+        u64 pd_phys = physmem_alloc_to(1);
+        if (!pd_phys) panic("paging_map_page_in: could not allocate PD");
+        pdpt->entries[pdp_index] = (pd_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
+        pd = (page_table_t *)(pd_phys + hhdm_offset);
+        memset(pd, 0, PAGE_SIZE);
+    }
+    else
+    {
+        pd = (page_table_t *)((pdpt->entries[pdp_index] & 0x000FFFFFFFFFF000) + hhdm_offset);
+    }
+
+    page_table_t *pt = NULL;
+    if (!(pd->entries[pd_index] & PTE_PRESENT))
+    {
+        u64 pt_phys = physmem_alloc_to(1);
+        if (!pt_phys) panic("paging_map_page_in: could not allocate PT");
+        pd->entries[pd_index] = (pt_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
+        pt = (page_table_t *)(pt_phys + hhdm_offset);
+        memset(pt, 0, PAGE_SIZE);
+    }
+    else
+    {
+        pt = (page_table_t *)((pd->entries[pd_index] & 0x000FFFFFFFFFF000) + hhdm_offset);
+    }
+
+    pt->entries[pt_index] = (physical_addr & 0x000FFFFFFFFFF000) | flags;
+
+    __asm__ volatile("invlpg (%0)" : : "r" (virtual_addr) : "memory");
+}
+
+void paging_unmap_page_in(u64 pml4_phys, u64 virtual_addr)
+{
+    u64 pml4_index = (virtual_addr >> 39) & 0x1FF;
+    u64 pdp_index  = (virtual_addr >> 30) & 0x1FF;
+    u64 pd_index   = (virtual_addr >> 21) & 0x1FF;
+    u64 pt_index   = (virtual_addr >> 12) & 0x1FF;
+
+    page_table_t *pml4 = (page_table_t *)(pml4_phys + hhdm_offset);
+
+    if (!(pml4->entries[pml4_index] & PTE_PRESENT)) return;
+    page_table_t *pdpt = (page_table_t *)((pml4->entries[pml4_index] & 0x000FFFFFFFFFF000) + hhdm_offset);
+
+    if (!(pdpt->entries[pdp_index] & PTE_PRESENT)) return;
+    page_table_t *pd = (page_table_t *)((pdpt->entries[pdp_index] & 0x000FFFFFFFFFF000) + hhdm_offset);
+
+    if (!(pd->entries[pd_index] & PTE_PRESENT)) return;
+    page_table_t *pt = (page_table_t *)((pd->entries[pd_index] & 0x000FFFFFFFFFF000) + hhdm_offset);
+
+    if (!(pt->entries[pt_index] & PTE_PRESENT)) return;
+
+    pt->entries[pt_index] = 0;
+
+    __asm__ volatile("invlpg (%0)" : : "r" (virtual_addr) : "memory");
 }

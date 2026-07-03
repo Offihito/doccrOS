@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: kernel.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -34,6 +34,8 @@
 
 // Memory
 #include <kernel/mem/meminclude.h>
+#include <kernel/mem/vmm/vmm.h>
+#include <kernel/tests/vmm/vmm_test.h>
 
 // Processes
 #include <kernel/proc/process.h>
@@ -41,11 +43,11 @@
 
 // modules
 #include <kernel/devices/device_init.h>
+#include <kernel/device_init/init.h>
 
 void _start(void)
 {
-    // doccrOS start
-    // Ensure that Limine base revision is supported and that we have a framebuffer
+    serial_init();
     if (framebuffer_request.response == NULL ||
         framebuffer_request.response->framebuffer_count < 1) {
         hcf();
@@ -61,10 +63,10 @@ void _start(void)
     char buf[256]; //for all string operations
 
     {
-        // Initialize mem
         physmem_init(memmap_request.response, hhdm_request.response);
         paging_init(hhdm_request.response);
         kheap_init();
+        vmm_init();
     }
 
     draw_logo();
@@ -83,6 +85,7 @@ void _start(void)
     process_init();
     sched_init();
     devices_init();
+    kernel_devices_init();
 
     //should not reach here
     #if USE_HCF == 1
