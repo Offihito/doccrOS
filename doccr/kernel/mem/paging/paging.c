@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: paging.c
  * CREATED BY: tsaraki
- * MODIFIED BY: Offihito
+ * MODIFIED BY: emex, Offihito
  *
  */
 

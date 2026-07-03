@@ -11,6 +11,7 @@
  */
 
 #include "kernel.h"
+#include "screen/lib/print.h"
 
 #include <kernel/arch/hal/assembly.h>
 #include <kernel/limine/reqs.h>
@@ -43,7 +44,7 @@
 
 // modules
 #include <kernel/devices/device_init.h>
-#include <kernel/device_init/init.h>
+#include <kernel/devices/init.h>
 
 void _start(void)
 {
@@ -57,8 +58,14 @@ void _start(void)
     struct limine_framebuffer *fb = framebuffer_request.response->framebuffers[0];
     graphics_init(fb);
     draw_logo();
-
     bs.Clear(BS1);
+
+    // backspace and tab have special texture, ik its a bad solution sowey :/
+    print("\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b \n", blue());
+    print("|   ", blue());
+    print("Welcome to doccrOS  ", white());
+    print("| \n", blue());
+    print("\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b \n\n", blue());
 
     char buf[256]; //for all string operations
 
@@ -86,6 +93,7 @@ void _start(void)
     sched_init();
     devices_init();
     kernel_devices_init();
+    //vmm_run_all_tests();
 
     //should not reach here
     #if USE_HCF == 1

@@ -79,30 +79,7 @@ static void bs_putchar(char c, u32 color)
     u32 char_h     = 8 * scale;
     u32 line_h     = char_h + 2 * scale;
 
-    if (c == '\b')
-    {
-        if (scr->cursor_x >= char_w)
-        {
-            scr->cursor_x -= char_w;
-        }
-        else if (scr->cursor_y >= line_h)
-        {
-            scr->cursor_y -= line_h;
-            scr->cursor_x = ((scr->width / char_w) - 1) * char_w;
-        }
-
-        for (u32 yy = 0; yy < char_h; yy++)
-            for (u32 xx = 0; xx < char_w; xx++)
-                putpixel(scr->x + scr->cursor_x + xx, scr->y + scr->cursor_y + yy, black());
-
-        if (scr->buf_len > 0)
-        {
-            scr->buf_len--;
-            scr->buffer[scr->buf_len] = '\0';
-        }
-        return;
-    }
-    else if (c == '\n')
+    if (c == '\n')
     {
         scr->cursor_x = 0;
         scr->cursor_y += line_h;
