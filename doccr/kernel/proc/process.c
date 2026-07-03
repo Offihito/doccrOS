@@ -12,6 +12,8 @@
 
 #include "process.h"
 #include <kernel/mem/meminclude.h>
+#include <kernel/screen/lib/string.h>
+#include <kernel/screen/lib/print.h>
 
 #define STACK_SIZE 8192
 
@@ -23,6 +25,8 @@ void process_init(void) {
     head = NULL;
     current = NULL;
     next_pid = 1;
+
+    log("[PROC]", "Process manager\n");
 }
 
 proc_t *process_create(const char *name, u64 entry) {

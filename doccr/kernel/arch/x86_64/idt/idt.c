@@ -14,6 +14,8 @@
 #include <kernel/arch/x86_64/exceptions/isr.h>
 #include <kernel/arch/x86_64/exceptions/irq.h>
 #include <kernel/mem/meminclude.h>
+#include <kernel/screen/lib/string.h>
+#include <kernel/screen/lib/print.h>
 
 static idt_entry_t idt[IDT_ENTRIES];
 static idt_ptr_t idt_ptr;
@@ -41,15 +43,11 @@ void idt_load(void)
 
 void idt_init(void)
 {
-    // Clear IDT
+    log("[IDT]", "Init interrupts\n");
+
     memset(&idt, 0, sizeof(idt));
 
-    // Set ISR Handler (Exceptions 0-31)
     isr_install();
-
-    // Set IRQ Handler (32-47)
     irq_install();
-
-    // Load IDT
     idt_load();
 }

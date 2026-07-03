@@ -5,12 +5,12 @@
 
 // time
 typedef struct {
-    u8 second;
-    u8 minute;
-    u8 hour;
-    u8 day;
-    u8 month;
-    u8 year;     // 2-digit == 2025 ->25
+    u8     second;
+    u8     minute;
+    u8     hour;
+    u8     day;
+    u8     month;
+    u8     year;     // 2-digit == 2025 ->25
 } cmos_time_t;
 
 void cmos_read_time(cmos_time_t *time);

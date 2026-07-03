@@ -12,6 +12,7 @@
 
 #include "device_init.h"
 #include <kernel/screen/lib/string.h>
+#include <kernel/screen/lib/print.h>
 #include <kernel/screen/colors.h>
 
 
@@ -20,7 +21,7 @@ static int module_count = 0;
 
 void module_init(void)
 {
-    //log("[MOD]", "init module system\n", d);
+    log("[MOD]", "init module system\n");
     for (int i = 0; i < MAX_MODULES; i++)
     {
         modules[i] = NULL;
@@ -32,7 +33,7 @@ int module_register(driver_module *module)
 {
 	if (!module || module_count >= MAX_MODULES)
 	{
-        //log("[MOD]", "Module register failed: invalid module or max reached\n", warning);
+        log("[MOD]", "Module register failed: invalid module or max reached\n", warning);
         return -1;
     }
 
@@ -40,7 +41,7 @@ int module_register(driver_module *module)
     for (int i = 0; i < module_count; i++)
     {
         if (modules[i] == module) {
-            //log("[MOD]", "Module already registered\n", warning);
+            log("[MOD]", "Module already registered\n", warning);
             return -1;
         }
     }
@@ -50,7 +51,7 @@ int module_register(driver_module *module)
     {
         int ret = module->init();
         if (ret != 0) {
-            //log("[MOD]", "Module init failed, skipping registration\n", warning);
+            log("[MOD]", "Module init failed, skipping registration\n", warning);
             return -1; /* don't add module if init fails */
         }
     }
@@ -79,11 +80,11 @@ void module_unregister(const char *name)
 	        modules[module_count - 1] = NULL;
 	        module_count--;
 
-	        //log("[MOD]", "Module unregistered\n", d);
+	        log("[MOD]", "Module unregistered\n", d);
 	        return;
 	    }
     }
-    //log("[MOD]", "Module to unregister not found\n", warning);
+    log("[MOD]", "Module to unregister not found\n", warning);
 }
 
 driver_module* module_find(const char *name)
@@ -92,18 +93,21 @@ driver_module* module_find(const char *name)
 
     for (int i = 0; i < module_count; i++)
     {
-        if (modules[i] && modules[i]->name && str_equals(modules[i]->name, name)) {
+        if (modules[i] && modules[i]->name && str_equals(modules[i]->name, name))
+        {
             return modules[i];
         }
     }
     return NULL;
 }
 
-int module_get_count(void) {
+int module_get_count(void)
+{
     return module_count;
 }
 
-driver_module* module_get_by_index(int idx) {
+driver_module* module_get_by_index(int idx)
+{
     if (idx < 0 || idx >= module_count) {
         return NULL;
     }

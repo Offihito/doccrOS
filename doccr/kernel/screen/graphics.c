@@ -11,6 +11,7 @@
  */
 
 #include "graphics.h"
+#include "lib/print.h"
 #include <kernel/screen/font_8x8.h>
 #include <kernel/screen/bootscreen/boot.h>
 
@@ -33,6 +34,9 @@ void graphics_init(struct limine_framebuffer *fb)
     cursor_y = 20;
     font_scale = 1;
 
+    bootscreen_setup();
+    bootscreen_layout_init();
+
     print("Welcome to doccrOS \n", white());
     print("v0.0.1 (alpha)\n", white());
 
@@ -43,6 +47,8 @@ void graphics_init(struct limine_framebuffer *fb)
     str_append(res_buf, "x");
     str_append_uint(res_buf, fb_height);
     print(res_buf, white());
+
+    print("\n", white());
 }
 
 void clear(u32 color)

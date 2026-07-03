@@ -18,31 +18,46 @@
 #include <kernel/screen/lib/print.h>
 
 
-void pci_init(void) {
+void pci_init(void)
+{
     char buf[64];
     buf[0] = '\0'; // prevents it from random character drawing
 // before pci_get_device_count();
 // because in the kernel its used before this causes random character drawing
 
-    //log("[PCI]", "Init PCI/PCIe\n", d);
+    log("[PCI]", "Init PCI/PCIe\n", d);
 
     pci_device_init();
 
 
-    int count = pci_device_get_count();
+    int total_count = pci_device_get_count();
+    int pcie_count = 0;
 
     // count PCIe devices
-    int pcie_count = 0;
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < total_count; i++)
+    {
         pci_device_t *dev = pci_device_get(i);
         if (dev && pcie_is_device(dev->bus, dev->device, dev->function)) {
             pcie_count++;
         }
     }
-    //log("[PCI]", "found ", d);
+
+    int pci_count = total_count - pcie_count;
+
+    str_copy(buf, "found ");
+    str_append_uint(buf, total_count);
+    str_append(buf, " total device(s)\n");
+    log("[PCI]", buf); // first log with tag
+
+    str_copy(buf, "found ");
     str_append_uint(buf, pcie_count);
-    //BOOTUP_PRINT(buf, white());
-    //BOOTUP_PRINT(" device(s)\n", white());
+    str_append(buf, " PCIe device(s)\n");
+    log_continue(buf);
+
+    str_copy(buf, "found ");
+    str_append_uint(buf, pci_count);
+    str_append(buf, " PCI device(s)\n");
+    log_continue(buf);
 
 }
 

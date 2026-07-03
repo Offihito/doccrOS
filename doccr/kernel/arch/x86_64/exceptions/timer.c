@@ -17,7 +17,7 @@
 #include <kernel/screen/colors.h>
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
-#include <drivers/cmos/cmos.h>
+#include <kernel/arch/x86_64/drivers/cmos/cmos.h>
 
 // using PIT (8254)
 //
@@ -53,6 +53,7 @@ void timer_handler(cpu_state_t* state)
 
 void timer_init(u32 frequency)
 {
+    log("[TIME]", "Init timer (1000Hz 1ms tick)\n");
     if (frequency == 0 || frequency > 1193182) {
         frequency = TIMER_FREQUENCY;
         //TODO:
@@ -160,6 +161,7 @@ u64 timer_get_milliseconds(void)
 }
 
 void timer_set_boot_time(void) {
+    log("[TIME]", "uptime subsystem\n");
     boot_timestamp = timer_ticks;
 }
 

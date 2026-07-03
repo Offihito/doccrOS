@@ -10,6 +10,8 @@
  *
  */
 
+#include "kernel.h"
+
 #include <kernel/arch/hal/assembly.h>
 #include <kernel/limine/reqs.h>
 #include <kernel/include/logo.h>
@@ -54,12 +56,7 @@ void _start(void)
     graphics_init(fb);
     draw_logo();
 
-    // main kernel
-    printf("==============================================\n");
-    printf("==                                          ==\n");
-    printf("==                  doccrOS                 ==\n");
-    printf("==                                          ==\n");
-    printf("==============================================\n");
+    bs.Clear(BS1);
 
     char buf[256]; //for all string operations
 
@@ -75,45 +72,20 @@ void _start(void)
     {
         // Initialize the CPU
         cpu_detect();
-        print(" [CPU] Detected CPU\n", COLOR_GREEN);
+        log("[CPU]", "Detected CPU\n");
         gdt_init();
-        print(" [GDT] init (Global Descriptor Table)\n", COLOR_GREEN);
         idt_init();
-        print(" [IDT] Init interrupts\n", COLOR_GREEN);
         timer_init(1000);
         timer_set_boot_time(); //for uptime command
-        //TODO:
-        // its not exactly uptime because everything before imer_set_boot_time() doesnt get count
-        // so we could set it to +50 milliseconds or something so its a bit more realistic i think...
-        print(" [TIME] Init timer (1000Hz 1ms tick)\n", COLOR_GREEN);
-        print(" [TIME] started uptime now...\n", COLOR_GREEN);
     }
 
-    putchar('\n', COLOR_WHITE);
-
     pci_init();
-    //char buf[64]; //its now at the top for every string operations
-    str_copy(buf, " [PCI] ");
-    str_append_uint(buf, pci_get_device_count());
-    str_append(buf, " device(s) found\n");
-    print(buf, COLOR_GREEN);
-    //pci will get really useful with xhci/other usb
-    //
-
-    // Initialize process manager and scheduler
     process_init();
-    print(" [PROC]  Process manager\n", COLOR_GREEN);
     sched_init();
-    print(" [SCHED] Scheduler\n", COLOR_GREEN);
-
-    putchar('\n', COLOR_WHITE);
     module_init();
-    print(" [MOD] Module system initialized\n", COLOR_GREEN);
-
-    hcf();
 
     //should not reach here
-    #ifdef USE_HCF
+    #if USE_HCF == 1
         hcf();
     #else
         panic("USE_HCF; FAILED --> USING PANIC");

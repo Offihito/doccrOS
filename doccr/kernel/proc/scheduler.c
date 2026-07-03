@@ -11,6 +11,8 @@
  */
 
 #include "scheduler.h"
+#include <kernel/screen/lib/string.h>
+#include <kernel/screen/lib/print.h>
 
 #define QUANTUM 10
 
@@ -47,6 +49,8 @@ void sched_init(void) {
     running = NULL;
     enabled = 0;
     ticks = 0;
+
+    log("[SCHED]", "Scheduler\n");
 }
 
 void sched_enable(void) {
