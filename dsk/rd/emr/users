@@ -1,0 +1,7 @@
+#username:uid:gid:home
+
+users[
+	root:0:0:/root
+	pc:1000:1000:/home/pc
+	guest:1001:1001:/home/guest
+]

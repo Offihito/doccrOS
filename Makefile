@@ -60,6 +60,12 @@ $(ISO): limine.conf $(BUILD_DIR)/kernel.elf disk
 	@cp $< $(ISODIR)/boot/limine/
 	@cp $(addprefix $(INCLUDE_DIR)/limine/limine-, bios.sys bios-cd.bin uefi-cd.bin) $(ISODIR)/boot/limine/
 	@cp $(addprefix $(INCLUDE_DIR)/limine/BOOT, IA32.EFI X64.EFI) $(ISODIR)/EFI/BOOT/
+
+	@echo "[MK] creating initrd.cpio..."
+	@chmod +x tools/initrd.sh
+	./tools/initrd.sh
+	@cp $(DISK_DIR)/initrd.cpio $(ISODIR)/boot/
+
 	@xorriso -as mkisofs -b boot/limine/limine-bios-cd.bin \
 		-no-emul-boot -boot-load-size 4 -boot-info-table \
 		--efi-boot boot/limine/limine-uefi-cd.bin \

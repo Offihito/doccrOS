@@ -1,0 +1,36 @@
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+//
+// Copyright (c) 2026 doccrLabs
+//
+// PROJECT: doccrOS
+// FILE: .emxrc
+// CREATED BY: emex
+// MODIFIED BY: --
+//
+
+var gui = 1 // the variable just needs to exist to work
+var lsblk       = ("/bin/lsblk.elf")
+var desktop     = ("/emr/system/desktop.elf")
+var sysinfo     = ("/emr/system/sysinfo.elf")
+var filemanager = ("/emr/system/fm.elf")
+var bg_test     = ("/emr/system/sinfo.elf")
+var bg_test2    = ("/emr/system/libraries/cursor.elf")
+var login_path  = ("/emr/system/login.elf")
+var gshell_path = ("/emr/system/terminal.elf")
+var shell_path  = ("/emr/system/shell.elf")
+
+print("succesfully jumped into userspace... yay :3")
+
+wait 150
+
+if  gui
+	exec  -bg desktop
+
+	exec  login_path
+
+	exec  -bg  /emr/system/welcome.elf
+else
+	print("[warning] gui not found")
+	exec shell_path
+endif

@@ -43,6 +43,9 @@
 #include <kernel/devices/device_init.h>
 #include <kernel/devices/init.h>
 
+// File system
+#include <kernel/fs/vfs/vfs.h>
+
 void _start(void)
 {
     serial_init();
@@ -87,6 +90,11 @@ void _start(void)
     pci_init();
     process_init();
     sched_init();
+
+    vfs_init();
+    rootfs_init();
+    vfs_dump();
+
     devices_init();
     kernel_devices_init();
     //vmm_run_all_tests();
