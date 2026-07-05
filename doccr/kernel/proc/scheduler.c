@@ -13,6 +13,7 @@
 #include "scheduler.h"
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
+#include <kernel/communication/serial.h>
 
 #define QUANTUM 10
 
@@ -29,6 +30,8 @@ static thread_t *current;
 static thread_t *zombies;    // dead threads waiting to get properly buried
 static int enabled;
 static u64 ticks;
+
+static u64 switch_count = 0;
 
 static void q_init(rq_t *q)
 {
@@ -148,6 +151,9 @@ void sched_tick(void)
     }
 }
 
+u64 sched_get_ticks(void) { return ticks; }
+u64 sched_get_switch_count(void) { return switch_count; }
+
 void sched_yield(void) {
     if (!enabled) return;
 
@@ -177,6 +183,17 @@ void sched_yield(void) {
         }
         return;
     }
+
+    switch_count++;
+    printf(
+        "[SCHED] #%llu tick=%llu: '%s'(tid=%llu) -> '%s'(tid=%llu)\n",
+        switch_count,
+        ticks,
+        prev->name,
+        prev->tid,
+        next->name,
+        next->tid
+    );
 
     //log("sched", "yield now");
 

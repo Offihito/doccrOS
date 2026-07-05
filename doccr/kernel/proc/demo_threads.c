@@ -14,12 +14,14 @@
 #include <kernel/screen/lib/print.h>
 #include <kernel/screen/colors.h>
 #include <kernel/proc/scheduler.h>
+#include <kernel/communication/serial.h>
 
 // the im bored, wake me if something happens fah thread
 void idle_fn(void *arg)
 {
     (void)arg;
-    for (;;) {
+    for (;;)
+    {
         __asm__ volatile("sti; hlt");
     }
 }
@@ -27,13 +29,21 @@ void idle_fn(void *arg)
 //just proves the scheduler actually alternates threads
 void worker_fn(void *arg)
 {
-    (void)arg;
+    u64 id  = (u64)arg;
     u32 count = 0;
 
-    for (;;) {
-        print("worker tick ", white());
-        printInt((int)count++, white());
-        print("\n", white());
+    for (;;)
+    {
+        if ((count % 50) == 0)
+        {
+            print("worker[", white());
+            printInt((int)id, white());
+            print("] tick ", white());
+            printInt((int)count, white());
+            print("\n", white());
+        }
+        printf("[worker-%llu] tick=%u\n", id, count);
+        count++;
 
         sched_yield(); // sharing is caring
     }

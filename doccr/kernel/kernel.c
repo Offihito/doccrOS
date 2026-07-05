@@ -97,8 +97,10 @@ void _start(void)
     proc_t *kproc = process_create("kernel");
     if (!kproc) panic("could not create kernel proc, rip");
 
-    thread_create(kproc, "idle",   idle_fn,   NULL);
-    thread_create(kproc, "worker", worker_fn, NULL);
+    thread_create(kproc, "idle",         idle_fn,       NULL);
+    thread_create(kproc, "worker-1",     worker_fn,     (void*)(u64)1);
+    thread_create(kproc, "worker-2",     worker_fn,     (void*)(u64)2);
+    thread_create(kproc, "worker-3",     worker_fn,     (void*)(u64)3);
 
     sched_enable();
 

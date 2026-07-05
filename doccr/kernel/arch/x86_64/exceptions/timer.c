@@ -18,6 +18,7 @@
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
 #include <kernel/arch/x86_64/drivers/cmos/cmos.h>
+#include <kernel/communication/serial.h>
 
 // using PIT (8254)
 //
@@ -43,11 +44,22 @@ void timer_handler(cpu_state_t* state)
         }
     }
 
-    //banner_tick();
-
     // call schedule
     if (sched_is_enabled()) {
         sched_tick();
+
+        if (timer_ticks % TIMER_FREQUENCY == 0)
+        {
+            thread_t *cur = sched_current();
+            printf(
+                "[SCHED-STATUS] uptime=%llus ticks=%llu switches=%llu current='%s'(tid=%llu)\n",
+                timer_get_seconds(),
+                sched_get_ticks(),
+                sched_get_switch_count(),
+                cur->name,
+                cur->tid
+            );
+        }
     }
 }
 

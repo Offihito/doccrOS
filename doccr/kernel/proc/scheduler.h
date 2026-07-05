@@ -30,4 +30,8 @@ void sched_remove(thread_t *t);
 void sched_tick(void);
 void sched_yield(void);
 
+// just to c if it works
+u64 sched_get_ticks(void);
+u64 sched_get_switch_count(void);
+
 #endif

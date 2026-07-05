@@ -148,11 +148,10 @@ void irq_handler(cpu_state_t* state)
 
     u8 irq = state->int_no - 32;
 
+    irq_ack(irq);
+
     // when registered
     if (irq < 16 && irq_handlers[irq] != NULL) {
         irq_handlers[irq](state);
     }
-
-    // Send EOI
-    irq_ack(irq);
 }
