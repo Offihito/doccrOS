@@ -28,6 +28,7 @@
 #include <kernel/arch/hal/cpu.h>
 #include <kernel/arch/hal/interrupts.h>
 #include <kernel/arch/hal/timer.h>
+#include <kernel/arch/hal/panic.h>
 #include <kernel/pci/pci.h>
 
 // Memory
@@ -37,6 +38,8 @@
 
 // Processes
 #include <kernel/proc/process.h>
+#include <kernel/proc/thread.h>
+#include <kernel/proc/demo_threads.h>
 #include <kernel/proc/scheduler.h>
 
 // modules
@@ -90,6 +93,14 @@ void _start(void)
     pci_init();
     process_init();
     sched_init();
+
+    proc_t *kproc = process_create("kernel");
+    if (!kproc) panic("could not create kernel proc, rip");
+
+    thread_create(kproc, "idle",   idle_fn,   NULL);
+    thread_create(kproc, "worker", worker_fn, NULL);
+
+    sched_enable();
 
     vfs_init();
     rootfs_init();

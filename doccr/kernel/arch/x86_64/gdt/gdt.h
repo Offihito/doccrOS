@@ -86,7 +86,6 @@ typedef struct {
     u16 iopb_offset;
 } __attribute__((packed)) tss_t;
 
-// Functions
 void gdt_init(void);
 void gdt_set_kernel_stack(u64 stack);
 void gdt_load(void);

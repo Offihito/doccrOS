@@ -14,6 +14,7 @@
 #define IDT_H
 
 #include <types.h>
+#include "../cpu.h"
 
 #define IDT_ENTRIES 256
 
@@ -50,7 +51,6 @@ typedef struct {
     u64 ss;
 } __attribute__((packed)) interrupt_frame_t;
 
-// CPU State für Context Switching
 typedef struct {
     u64 r15, r14, r13, r12, r11, r10, r9, r8;
     u64 rbp, rdi, rsi, rdx, rcx, rbx, rax;
@@ -58,7 +58,6 @@ typedef struct {
     u64 rip, cs, rflags, rsp, ss;
 } __attribute__((packed)) cpu_state_t;
 
-// Funktionen
 void idt_init(void);
 void idt_set_gate(u8 num, u64 handler, u8 flags);
 void idt_load(void);

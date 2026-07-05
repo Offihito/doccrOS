@@ -67,17 +67,32 @@ __attribute__((noreturn)) void panic_exception(cpu_state_t *state, const char *m
     print(buf, PANICSCREEN_COLOR);
     print("\n", PANICSCREEN_COLOR);
 
-    // Print RIP
+    // page fault has VIP treatment xd
+    if (state->int_no == 14) {
+        u64 cr2;
+        __asm__ volatile("mov %%cr2, %0" : "=r"(cr2));
+
+        str_copy(buf, "CR2 (faulting addr): 0x");
+        str_from_hex(buf + str_len(buf), cr2);
+        print(buf, PANICSCREEN_COLOR);
+        print("\n", PANICSCREEN_COLOR);
+
+        str_copy(buf, "  present: ");
+        str_append(buf, (state->err_code & 1) ? "yes" : "no (unmapped)");
+        str_append(buf, ", write: ");
+        str_append(buf, (state->err_code & 2) ? "yes" : "no");
+        print(buf, PANICSCREEN_COLOR);
+        print("\n", PANICSCREEN_COLOR);
+    }
+
     str_copy(buf, "RIP: 0x");
-    str_append_uint(buf, (u32)(state->rip >> 32));
-    str_append_uint(buf, (u32)(state->rip & 0xFFFFFFFF));
+    str_from_hex(buf + str_len(buf), state->rip);
     print(buf, PANICSCREEN_COLOR);
     print("\n", PANICSCREEN_COLOR);
 
     // Print RSP
     str_copy(buf, "RSP: 0x");
-    str_append_uint(buf, (u32)(state->rsp >> 32));
-    str_append_uint(buf, (u32)(state->rsp & 0xFFFFFFFF));
+    str_from_hex(buf + str_len(buf), state->rsp);
     print(buf, PANICSCREEN_COLOR);
     print("\n\n", PANICSCREEN_COLOR);
 

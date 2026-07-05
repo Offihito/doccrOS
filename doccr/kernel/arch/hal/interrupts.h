@@ -1,7 +1,10 @@
 #pragma once
 #include <types.h>
 
-typedef struct cpu_state cpu_state_t;
+//typedef struct cpu_state cpu_state_t;
+//
+
+#include <idt/idt.h>
 
 typedef void (*irq_handler_t)(cpu_state_t *state);
 

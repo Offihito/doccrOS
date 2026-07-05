@@ -18,48 +18,62 @@
 #define STACK_SIZE 8192
 
 static proc_t *head;
-static proc_t *current;
+//static proc_t *current;
 static u64 next_pid;
 
 void process_init(void) {
     head = NULL;
-    current = NULL;
-    next_pid = 1;
+    //current = NULL;
+    next_pid =    1;
+    thread_subsystem_init();
 
     log("[PROC]", "Process manager\n");
 }
 
-proc_t *process_create(const char *name, u64 entry) {
+proc_t *process_create(const char *name)
+{
     proc_t *p = (proc_t *)kmalloc(sizeof(proc_t));
     if (!p) return NULL;
-
+/*
     u64 stk = (u64)kmalloc(STACK_SIZE);
     if (!stk) {
         kfree((u64 *)p);
         return NULL;
-    }
+    }*/
 
     p->pid = next_pid++;
-    p->state = PROC_READY;
-    p->stack_base = stk;
-    p->stack_ptr = stk + STACK_SIZE;
-    p->entry = entry;
+    p->state = PROC_ALIVE;
+    p->threads = NULL;
+    p->thread_count = 0;
     p->next = head;
 
-    int i = 0;
-    while (name[i] && i < 63) {
-        p->name[i] = name[i];
-        i++;
+    int i =    0;
+    if (name)
+    {
+        while (name[i] && i < 63)
+        {
+            p->name[i] = name[i];
+            i++;
+        }
     }
-    p->name[i] = '\0';
 
-    head = p;
+    p->name[i] =  '\0';
+
+    head =    p;
+
     return p;
 }
 
-void process_destroy(proc_t *p) {
+void process_destroy(proc_t *p)
+{
     if (!p) return;
 
+    thread_t *t = p->threads;
+    while (t) {
+        thread_t *next = t->proc_next;
+        thread_destroy(t);
+        t = next;
+    }
     proc_t *cur = head, *prev = NULL;
 
     while (cur) {
@@ -67,9 +81,9 @@ void process_destroy(proc_t *p) {
             if (prev) prev->next = cur->next;
             else head = cur->next;
 
-            if (current == p) current = NULL;
+            //if (current == p) current = NULL;
 
-            kfree((u64 *)p->stack_base);
+            //kfree((u64 *)p->stack_base);
             kfree((u64 *)p);
             return;
         }
@@ -78,10 +92,9 @@ void process_destroy(proc_t *p) {
     }
 }
 
-proc_t *process_get_current(void) {
-    return current;
-}
+proc_t *process_get_current(void)
+{
+    thread_t *t =    thread_get_current();
 
-void process_set_state(proc_t *p, proc_state_t state) {
-    if (p) p->state = state;
+    return t ? t->owner  : NULL;
 }
