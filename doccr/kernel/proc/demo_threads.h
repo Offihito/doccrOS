@@ -1,3 +1,15 @@
+/*
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * Copyright (c) 2026 doccrLabs
+ *
+ * PROJECT: doccrOS
+ * FILE: demo_threads.h
+ * CREATED BY: emex
+ * MODIFIED BY: --
+ *
+ */
+
 #ifndef DEMO_THREADS_H
 #define DEMO_THREADS_H
 

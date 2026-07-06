@@ -159,6 +159,11 @@ void paging_init(limine_hhdm_response_t *hpr) {
     __asm__ volatile("mov %%cr3, %0" : "=r" (current_cr3));
 
     hhdm_offset = hpr->offset;
+
+    if (HEAP_START >= hhdm_offset && HEAP_START < hhdm_offset + 0x1000000000ULL) {
+        panic("PAGING: HEAP_START overlaps HHDM window!");
+    }
+
     kernel_pml4 = (page_table_t*)((current_cr3 & 0x000FFFFFFFFFF000) + hpr->offset);
 
     u64 heap_frames_len = (HEAP_SIZE / PAGE_SIZE);
@@ -166,10 +171,12 @@ void paging_init(limine_hhdm_response_t *hpr) {
     u64 phys = physmem_alloc_to(heap_frames_len);
     if  (!phys) panic("ERROR: Could not allocate physmem for heap");
 
-    // paging for the kernel heap
+    printf("[PAGING] heap backing: phys=0x%llx - 0x%llx (frames %llu - %llu)\n",
+           phys, phys + heap_frames_len * PAGE_SIZE,
+           phys / PAGE_SIZE, phys / PAGE_SIZE + heap_frames_len - 1);
+
     for (u64 i = 0; i < heap_frames_len; i++) {
         u64 virt = HEAP_START + (i * PAGE_SIZE);
-
         paging_map_page(hpr, virt, phys + (i * PAGE_SIZE), PTE_PRESENT | PTE_WRITABLE);
     }
 
@@ -200,6 +207,7 @@ void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 
     {
         u64 pdpt_phys = physmem_alloc_to(1);
         if (!pdpt_phys) panic("paging_map_page_in: could not allocate PDPT");
+        printf("[PAGING] new PDPT frame=0x%llx\n", pdpt_phys);   // <-- neu
         pml4->entries[pml4_index] = (pdpt_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
         pdpt = (page_table_t *)(pdpt_phys + hhdm_offset);
         memset(pdpt, 0, PAGE_SIZE);
@@ -214,6 +222,7 @@ void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 
     {
         u64 pd_phys = physmem_alloc_to(1);
         if (!pd_phys) panic("paging_map_page_in: could not allocate PD");
+        printf("[PAGING] new PD frame=0x%llx\n", pd_phys);   // <-- neu
         pdpt->entries[pdp_index] = (pd_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
         pd = (page_table_t *)(pd_phys + hhdm_offset);
         memset(pd, 0, PAGE_SIZE);
@@ -228,6 +237,7 @@ void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 
     {
         u64 pt_phys = physmem_alloc_to(1);
         if (!pt_phys) panic("paging_map_page_in: could not allocate PT");
+        printf("[PAGING] new PT frame=0x%llx\n", pt_phys);   // <-- neu
         pd->entries[pd_index] = (pt_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
         pt = (page_table_t *)(pt_phys + hhdm_offset);
         memset(pt, 0, PAGE_SIZE);
@@ -236,6 +246,8 @@ void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 
     {
         pt = (page_table_t *)((pd->entries[pd_index] & 0x000FFFFFFFFFF000) + hhdm_offset);
     }
+
+    printf("[PAGING] mapping virt=0x%llx -> phys=0x%llx\n", virtual_addr, physical_addr); // <-- neu
 
     pt->entries[pt_index] = (physical_addr & 0x000FFFFFFFFFF000) | flags;
 

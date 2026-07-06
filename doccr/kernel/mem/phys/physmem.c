@@ -14,6 +14,10 @@
 
 #include <limine/limine.h>
 #include <kernel/arch/hal/panic.h>
+#include <kernel/communication/serial.h>
+
+extern u8 _kernel_start[];
+extern u8 _kernel_end[];
 
 static struct physmem_pageframe *physmem_pageframes = NULL;
 static u64 physmem_total = 0;
@@ -206,6 +210,23 @@ void physmem_init(limine_memmap_response_t *mpr, limine_hhdm_response_t *hpr) {
     memset(bitmap, 0xFF, bitmap_size);
 
     physmem_addr_mark(mpr);
+
+    for (u64 i = 0; i < mpr->entry_count; i++)
+    {
+        struct limine_memmap_entry *entry = mpr->entries[i];
+        printf(
+            "[MEMMAP] base=0x%llx len=0x%llx type=%llu\n",
+            entry->base,
+            entry->length,
+            (u64)entry->type
+        );
+    }
+
+    printf(
+        "[PHYSMEM] kernel_start=%p kernel_end=%p (phys via memmap types above)\n",
+        (void*)_kernel_start,
+        (void*)_kernel_end
+    );
 
     u64 to_used = used_bytes_to_frame_count(physmem_size + bitmap_size);
     physmem_addr_mark_used((u64)physmem_pageframe_addr, to_used);

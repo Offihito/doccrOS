@@ -18,6 +18,7 @@
 #include <kernel/screen/lib/string.h>
 
 extern void thread_trampoline(void);
+extern void user_thread_trampoline(void);
 
 #define INITIAL_RFLAGS 0x202 // IF=1 (interrupts on) + the reserved bit that always has to be 1
 
@@ -31,7 +32,7 @@ thread_t *thread_create(proc_t *owner, const char *name, thread_entry_t entry, v
 {
     if (!entry) return NULL; // cant run nothing, sorry
 
-    thread_t *t = (thread_t *)kmalloc(sizeof(thread_t));
+    thread_t *t = (thread_t *)kcalloc(1, sizeof(thread_t));
     if (!t) return NULL;
 
     u8 *stack = (u8 *)kmalloc(THREAD_STACK_SIZE);
@@ -48,6 +49,8 @@ thread_t *thread_create(proc_t *owner, const char *name, thread_entry_t entry, v
     t->owner          = owner;
     t->proc_next      = NULL;
     t->sched_next     = NULL;
+    t->is_user = 0;
+    t->kstack_top = 0;
 
     int i = 0;
     if (name)
@@ -79,7 +82,71 @@ thread_t *thread_create(proc_t *owner, const char *name, thread_entry_t entry, v
         owner->threads     = t;
 
         owner->thread_count++;
+        owner->alive_count++;
     }
+
+    sched_add(t);
+    return t;
+}
+
+thread_t *thread_create_user(
+    proc_t *owner,
+    const char *name,
+    thread_entry_t entry,
+    void *arg,
+    u64 user_stack_top
+) {
+    if (!entry || !owner)  return NULL;
+
+    thread_t *t = (thread_t *)kcalloc(1, sizeof(thread_t));
+    if (!t) return NULL;
+
+    u8 *kstack = (u8 *)kmalloc(THREAD_STACK_SIZE);
+    if (!kstack)
+    {
+        kfree((u64 *)t);
+        return NULL;
+    }
+
+    t->tid            = next_tid++;
+    t->state          = THREAD_READY;
+    t->stack_base     = kstack;
+    t->stack_size     = THREAD_STACK_SIZE;
+    t->owner          = owner;
+    t->proc_next      = NULL;
+    t->sched_next     = NULL;
+    t->is_user = 1;
+    t->kstack_top = (u64)(kstack + THREAD_STACK_SIZE);
+
+    int i = 0;
+    if (name)
+    {
+        while (
+            name[i] && i < THREAD_NAME_MAX - 1
+        ) {
+            t->name[i] = name[i];
+            i++;
+        }
+    }
+    t->name[i]  =  '\0';
+
+    u64 *sp = (u64 *)(kstack + THREAD_STACK_SIZE);
+
+    *(--sp)     = (u64)user_thread_trampoline; // "returnaddr"
+    *(--sp)     = 0;                // rbp
+    *(--sp)     = 0;                // rbx
+    *(--sp)     = (u64)entry;       // r12 uvirtual adress
+    *(--sp)     = (u64)arg;         // r13 arg
+    *(--sp)     = user_stack_top;   // r14  user stack top
+    *(--sp)     = 0;                // r15
+    *(--sp)     = INITIAL_RFLAGS;
+
+    t->rsp     = (u64)sp;
+
+    t->proc_next   = owner->threads;
+    owner->threads     = t;
+    owner->thread_count++;
+    owner->alive_count++;
 
     sched_add(t);
     return t;
@@ -115,6 +182,16 @@ __attribute__((noreturn)) void thread_exit(void)
 {
     thread_t *self  = thread_get_current();
     self->state     = THREAD_DEAD;
+
+    if (self->owner)
+    {
+        self->owner->alive_count--;
+        if (
+            self->owner->alive_count <= 0 &&
+            self->owner->state       == PROC_ALIVE
+        ) process_exit(self->owner, 0); // if last thread is dead, proces is also dead
+    }
+
     sched_yield();
 
     for (;;)

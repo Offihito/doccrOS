@@ -19,20 +19,22 @@
 
 static proc_t *head;
 //static proc_t *current;
+static proc_t *proc_zombies;
 static u64 next_pid;
 
 void process_init(void) {
     head = NULL;
     //current = NULL;
+    proc_zombies = NULL;
     next_pid =    1;
     thread_subsystem_init();
 
     log("[PROC]", "Process manager\n");
 }
 
-proc_t *process_create(const char *name)
+static proc_t *proc_alloc(const char *name)
 {
-    proc_t *p = (proc_t *)kmalloc(sizeof(proc_t));
+    proc_t *p = (proc_t *)kcalloc(1, sizeof(proc_t));
     if (!p) return NULL;
 /*
     u64 stk = (u64)kmalloc(STACK_SIZE);
@@ -43,8 +45,10 @@ proc_t *process_create(const char *name)
 
     p->pid = next_pid++;
     p->state = PROC_ALIVE;
+    p->exit_code    = 0;
     p->threads = NULL;
     p->thread_count = 0;
+    p->alive_count  = 0;
     p->next = head;
 
     int i =    0;
@@ -64,6 +68,72 @@ proc_t *process_create(const char *name)
     return p;
 }
 
+proc_t *process_create(const char *name)
+{
+    proc_t *p = proc_alloc(name);
+    if (!p) return NULL;
+
+    p->space = vmm_get_kernel_space(); // no extra pml4
+    return p;
+}
+
+proc_t *process_create_user(const char *name)
+{
+    proc_t *p = proc_alloc(name);
+    if (!p) return NULL;
+
+    p->space = vmm_space_create();
+    if (!p->space)
+    {
+        head = p->next;
+
+        kfree((u64 *)p);
+        return NULL;
+    }
+    return p;
+}
+
+void process_exit(proc_t *p, int exit_code)
+{
+    if (!p || p->state != PROC_ALIVE) return;
+
+    p->exit_code = exit_code;
+    p->state     = PROC_ZOMBIE;
+
+    proc_t *cur  = head, *prev   = NULL;
+
+    while (cur)
+    {
+        if (cur == p)
+        {
+            if (prev) prev->next = cur->next;
+            else head     = cur->next;
+            break;
+        }
+        prev     = cur;
+        cur      = cur->next;
+    }
+
+    p->next = proc_zombies;
+    proc_zombies = p;
+}
+
+void process_reap_zombies(void)
+{
+    while (proc_zombies)
+    {
+        proc_t *p     = proc_zombies;
+        proc_zombies  = p->next;
+
+        if (
+            p->space && p->space != vmm_get_kernel_space()
+        ) vmm_space_destroy(p->space); // pml4 + private frames
+
+        p->state      = PROC_DEAD;
+        kfree((u64 *)p);
+    }
+}
+
 void process_destroy(proc_t *p)
 {
     if (!p) return;
@@ -74,10 +144,16 @@ void process_destroy(proc_t *p)
         thread_destroy(t);
         t = next;
     }
+    if (
+        p->space && p->space != vmm_get_kernel_space()
+    )vmm_space_destroy(p->space);
+
     proc_t *cur = head, *prev = NULL;
 
-    while (cur) {
-        if (cur == p) {
+    while (cur)
+    {
+        if (cur == p)
+        {
             if (prev) prev->next = cur->next;
             else head = cur->next;
 
@@ -87,8 +163,9 @@ void process_destroy(proc_t *p)
             kfree((u64 *)p);
             return;
         }
-        prev = cur;
-        cur = cur->next;
+
+        prev    = cur;
+        cur     = cur->next;
     }
 }
 

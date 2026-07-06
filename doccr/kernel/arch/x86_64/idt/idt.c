@@ -13,6 +13,7 @@
 #include "idt.h"
 #include <kernel/arch/x86_64/exceptions/isr.h>
 #include <kernel/arch/x86_64/exceptions/irq.h>
+#include <kernel/arch/x86_64/user/syscall.h>
 #include <kernel/mem/meminclude.h>
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
@@ -49,5 +50,6 @@ void idt_init(void)
 
     isr_install();
     irq_install();
+    syscall_install();
     idt_load();
 }

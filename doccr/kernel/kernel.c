@@ -40,6 +40,7 @@
 #include <kernel/proc/process.h>
 #include <kernel/proc/thread.h>
 #include <kernel/proc/demo_threads.h>
+#include <kernel/proc/user_demo.h>
 #include <kernel/proc/scheduler.h>
 
 // modules
@@ -97,10 +98,19 @@ void _start(void)
     proc_t *kproc = process_create("kernel");
     if (!kproc) panic("could not create kernel proc, rip");
 
-    thread_create(kproc, "idle",         idle_fn,       NULL);
+    thread_t *t_idle = thread_create(kproc, "idle", idle_fn, NULL);
     thread_create(kproc, "worker-1",     worker_fn,     (void*)(u64)1);
     thread_create(kproc, "worker-2",     worker_fn,     (void*)(u64)2);
     thread_create(kproc, "worker-3",     worker_fn,     (void*)(u64)3);
+
+    g_debug_canary_thread = t_idle;
+
+    /*printf(
+        "[CANARY] idle rsp=0x%llx trampoline@rsp=0x%llx\n",
+        t_idle->rsp,
+        *(u64*)t_idle->rsp
+    );*/
+
 
     sched_enable();
 
@@ -111,6 +121,12 @@ void _start(void)
     devices_init();
     kernel_devices_init();
     //vmm_run_all_tests();
+
+    //printf("[CANARY] before user_demo_init: 0x%llx\n", *(u64*)t_idle->rsp);
+
+    user_demo_init();
+
+    //printf("[CANARY] after user_demo_init: 0x%llx\n", *(u64*)t_idle->rsp);
 
     //should not reach here
     #if USE_HCF == 1

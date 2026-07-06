@@ -92,6 +92,17 @@ run: $(ISO)
 		-serial stdio 2>&1 \
 		#-no-reboot \
 		#-no-shutdown
+		#
+binclean:
+	@echo "[BINCLEAN] Removing compiled binaries from dsk/..."
+	@rm -f  $(DISK_DIR)/initrd.cpio
+	@rm -f  $(DISK_DIR)/initrdh.cpio
+	@rm -rf $(DISK_DIR)/rd/bin
+	@rm -f  $(DISK_DIR)/rd/emr/system/desktop.elf
+	@rm -f  $(DISK_DIR)/rd/emr/system/login.elf
+	@rm -f  $(DISK_DIR)/rd/emr/system/gears.elf
+	@mkdir -p $(DISK_DIR)/rd/bin
+	@echo "[OK] binclean done"
 
 # Compilation rules
 $(BUILD_DIR)/%.c.o: %.c

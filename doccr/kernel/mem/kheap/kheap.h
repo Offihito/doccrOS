@@ -29,7 +29,7 @@ u64  kheap_get_block_count(void);
 u64  kheap_get_used_block_count(void);
 // void kheap_print_stats(void);
 
-#define HEAP_START 0xFFFF800000000000  // Start of kernel heap
+#define HEAP_START 0xFFFF880000000000  // Start of kernel heap
 #define HEAP_SIZE  (2 * 4096 * PAGE_SIZE) // 16MB initial heap
 #define BLOCK_MAGIC 0xDEADBEEF
 

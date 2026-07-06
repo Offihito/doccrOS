@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: vmm.h
  * CREATED BY: Offihito
- * MODIFIED BY: --
+ * MODIFIED BY: emex
  *
  */
 
@@ -79,5 +79,10 @@ void          vmm_cow_install_handler(vmm_space_t **current_space_ptr);
 
 u64           vmm_map_phys(vmm_space_t *space, u64 vaddr, u64 phys_addr, u64 page_count, u32 flags);
 void          vmm_unmap_phys(vmm_space_t *space, u64 vaddr);
+
+void vmm_space_activate(vmm_space_t *space);
+vmm_space_t *vmm_get_active_space(void);
+
+u64 vmm_space_get_phys(vmm_space_t *space, u64 vaddr);
 
 #endif

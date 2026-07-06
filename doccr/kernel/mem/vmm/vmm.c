@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: vmm.c
  * CREATED BY: Offihito
- * MODIFIED BY: --
+ * MODIFIED BY: emex
  *
  */
 
@@ -17,6 +17,8 @@
 #include <kernel/mem/paging/paging.h>
 #include <kernel/arch/hal/panic.h>
 #include <kernel/arch/x86_64/exceptions/isr.h>
+#include <kernel/arch/hal/mmu.h>
+#include <kernel/communication/serial.h>
 
 #define PAGE_ALIGN_UP(x)   (((x) + 0xFFFULL) & ~0xFFFULL)
 #define PAGE_ALIGN_DOWN(x) ((x) & ~0xFFFULL)
@@ -30,6 +32,8 @@ static u64 vmm_regions      = 0;
 static u64 vmm_used_regions = 0;
 
 static vmm_space_t kernel_space;
+
+static vmm_space_t *active_space = NULL;
 
 static vmm_region_t *region_alloc(void)
 {
@@ -94,6 +98,8 @@ void vmm_init(void)
     kernel_space.regions      = NULL;
     kernel_space.region_count = 0;
     kernel_space.used_virtual = 0;
+
+    active_space = &kernel_space;
 }
 
 u64 vmm_alloc(u64 size, u32 flags)
@@ -201,6 +207,8 @@ vmm_space_t *vmm_space_create(void)
         kfree((u64 *)space);
         return NULL;
     }
+
+    printf("[VMM] new space PML4 frame=0x%llx\n", pml4_phys);
 
     u64 hhdm = paging_get_hhdm_offset();
     page_table_t *pml4_virt = (page_table_t *)(pml4_phys + hhdm);
@@ -650,4 +658,26 @@ u64 vmm_map_phys(vmm_space_t *space, u64 vaddr, u64 phys_addr, u64 page_count, u
 void vmm_unmap_phys(vmm_space_t *space, u64 vaddr)
 {
     vmm_space_free(space, vaddr);
+}
+
+void vmm_space_activate(vmm_space_t *space)
+{
+    if (!space || !space->pml4_phys) return;
+    //if (!space || space == active_space) return;
+    if (space == active_space) return;
+
+    arch_mmu_activate(space->pml4_phys);
+    active_space = space;
+}
+
+vmm_space_t *vmm_get_active_space(void)
+{
+    return active_space;
+}
+
+
+u64 vmm_space_get_phys(vmm_space_t *space, u64 vaddr)
+{
+    if (!space) return 0;
+    return pte_lookup(space, PAGE_ALIGN_DOWN(vaddr));
 }

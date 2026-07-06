@@ -11,9 +11,12 @@
  */
 
 #include "scheduler.h"
+#include "process.h"
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
 #include <kernel/communication/serial.h>
+#include <kernel/mem/vmm/vmm.h>
+#include <kernel/arch/x86_64/gdt/gdt.h>
 
 #define QUANTUM 10
 
@@ -157,7 +160,8 @@ u64 sched_get_switch_count(void) { return switch_count; }
 void sched_yield(void) {
     if (!enabled) return;
 
-    reap_zombies(); // bury last rounds dead before we do anything else
+    reap_zombies();
+    process_reap_zombies();
 
     thread_t *prev     = current;
     thread_t *next     = q_pop(&ready_q);
@@ -199,6 +203,22 @@ void sched_yield(void) {
 
     next->state     = THREAD_RUNNING;
     current     = next;
+
+    printf("[SCHED] before activate: next='%s' owner=%p\n", next->name, (void*)next->owner);
+
+    if (next->owner && next->owner->space)
+    {
+        printf("[SCHED] activating space=%p pml4_phys=0x%llx\n",
+               (void*)next->owner->space, next->owner->space->pml4_phys);
+        vmm_space_activate(next->owner->space);
+    }
+
+    printf("[SCHED] is_user=%d kstack_top=0x%llx\n", next->is_user, next->kstack_top);
+
+    if (next->is_user)
+        gdt_set_kernel_stack(next->kstack_top);
+
+    printf("[SCHED] about to context_switch\n");
 
     context_switch(&prev->rsp, next->rsp);
 }

@@ -16,6 +16,9 @@ global context_switch
 global thread_trampoline
 extern thread_exit          ; lives in thread.c, nasm cant read minds
 
+global user_thread_trampoline
+extern arch_enter_usermode
+
 context_switch:
     push rbp
     push rbx
@@ -46,4 +49,14 @@ thread_trampoline:
 .hang:
     cli
     hlt
-    jmp .hang                ; just in case thread_exit somehow comes back (it shouldnt)
+    jmp .hang ; just in case thread_exit somehow comes back (it shouldnt)
+
+user_thread_trampoline:
+    mov rdi, r12
+    mov rsi, r14
+    mov rdx, r13
+    call arch_enter_usermode ; does not return
+.hang:
+    cli
+    hlt
+    jmp .hang
