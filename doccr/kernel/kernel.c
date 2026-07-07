@@ -50,6 +50,9 @@
 // File system
 #include <kernel/fs/vfs/vfs.h>
 
+// Shell
+#include <kernel/kshell/kshell.h>
+
 void _start(void)
 {
     serial_init();
@@ -70,8 +73,6 @@ void _start(void)
     print("Welcome to doccrOS  ", white());
     print("| \n", blue());
     print("\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b \n\n", blue());
-
-    char buf[256]; //for all string operations
 
     {
         physmem_init(memmap_request.response, hhdm_request.response);
@@ -121,6 +122,8 @@ void _start(void)
     devices_init();
     kernel_devices_init();
     //vmm_run_all_tests();
+
+    kshell_init(kproc);
 
     //printf("[CANARY] before user_demo_init: 0x%llx\n", *(u64*)t_idle->rsp);
 

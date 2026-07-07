@@ -17,7 +17,7 @@
 
 #define VFS_NAME_MAX      64
 #define VFS_MAX_CHILDREN  64   // TODO: do this dynamic
-#define VFS_MAX_FILE_SIZE 4096
+#define VFS_MAX_FILE_SIZE (64 * 1024 * 1024)  // 64 MiB
 #define VFS_MAX_PATH      256
 
 
@@ -36,6 +36,7 @@ typedef struct vfs_node {
     u8      *data;      // only files get to have data, directories just hold hands
     u64     size;       // bytes actually used
     u64     capacity;   // bytes we bothered to allocate
+    u8      borrowed;   // 1 = data points into external memory (e.g. CPIO archive), do not free
 
     struct vfs_node     *parent;
     struct vfs_node     *children[VFS_MAX_CHILDREN];
@@ -57,6 +58,10 @@ vfs_node_t *vfs_find_child(vfs_node_t *dir, const char *name);
 
 int vfs_write(vfs_node_t *node, const void *buf, u64 size);
 int vfs_read(vfs_node_t *node, void *buf, u64 size);
+
+// zero-copy: point the node directly at existing memory (e.g. a Limine module).
+// the caller is responsible for keeping that memory alive; it will NOT be freed.
+void vfs_set_data(vfs_node_t *node, u8 *ptr, u64 size);
 
 void  vfs_list(vfs_node_t *dir);
 

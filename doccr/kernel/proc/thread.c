@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: thread.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -66,14 +66,15 @@ thread_t *thread_create(proc_t *owner, const char *name, thread_entry_t entry, v
 
     u64 *sp = (u64 *)(stack + THREAD_STACK_SIZE);
 
-    *(--sp)     = (u64)thread_trampoline; // "return address" that ret jumps to
-    *(--sp)     = 0;               // rbp
-    *(--sp)     = 0;               // rbx
-    *(--sp)     = (u64)entry;      // r12 -> trampoline calls this
-    *(--sp)     = (u64)arg;        // r13 -> trampoline passes this as arg
-    *(--sp)     = 0;               // r14
-    *(--sp)     = 0;               // r15
-    *(--sp)     = INITIAL_RFLAGS;  // rflags -> interrupts stay ON once we start running
+
+    *(--sp)     = (u64)thread_trampoline; 
+    *(--sp)     = INITIAL_RFLAGS;         
+    *(--sp)     = 0;                     
+    *(--sp)     = 0;                      
+    *(--sp)     = (u64)entry;             
+    *(--sp)     = (u64)arg;              
+    *(--sp)     = 0;                   
+    *(--sp)     = 0;                     
 
     t->rsp     = (u64)sp;
 
@@ -132,14 +133,14 @@ thread_t *thread_create_user(
 
     u64 *sp = (u64 *)(kstack + THREAD_STACK_SIZE);
 
-    *(--sp)     = (u64)user_thread_trampoline; // "returnaddr"
-    *(--sp)     = 0;                // rbp
-    *(--sp)     = 0;                // rbx
-    *(--sp)     = (u64)entry;       // r12 uvirtual adress
-    *(--sp)     = (u64)arg;         // r13 arg
-    *(--sp)     = user_stack_top;   // r14  user stack top
-    *(--sp)     = 0;                // r15
-    *(--sp)     = INITIAL_RFLAGS;
+    *(--sp)     = (u64)user_thread_trampoline; 
+    *(--sp)     = INITIAL_RFLAGS;              
+    *(--sp)     = 0;                           
+    *(--sp)     = 0;                      
+    *(--sp)     = (u64)entry;                 
+    *(--sp)     = (u64)arg;                   
+    *(--sp)     = user_stack_top;              
+    *(--sp)     = 0;                           
 
     t->rsp     = (u64)sp;
 

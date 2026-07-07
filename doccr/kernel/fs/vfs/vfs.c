@@ -246,7 +246,7 @@ int vfs_remove(const char *path)
     parent->child_count--;
 
 
-    if (node->data) kfree((u64 *)node->data);
+    if (node->data && !node->borrowed) kfree((u64 *)node->data);
     kfree((u64 *)node);
 
     return 0;
@@ -255,7 +255,15 @@ int vfs_remove(const char *path)
 int vfs_write(vfs_node_t *node, const void *buf, u64 size)
 {
     if (!node || node->type != VFS_FILE || !buf) return -1;
-    if (size > VFS_MAX_FILE_SIZE) size = VFS_MAX_FILE_SIZE; // no infinite files today xd
+    if (size > VFS_MAX_FILE_SIZE) return -1; // refuse rather than silently truncate
+
+    // drop a borrowed buffer before taking ownership
+    if (node->borrowed)
+    {
+        node->data     = NULL;
+        node->capacity = 0;
+        node->borrowed = 0;
+    }
 
     if (!node->data || node->capacity < size)
     {
@@ -272,6 +280,20 @@ int vfs_write(vfs_node_t *node, const void *buf, u64 size)
     node->size = size;
 
     return (int)size;
+}
+
+void vfs_set_data(vfs_node_t *node, u8 *ptr, u64 size)
+{
+    if (!node || node->type != VFS_FILE) return;
+
+    // free any previously owned buffer
+    if (node->data && !node->borrowed)
+        kfree((u64 *)node->data);
+
+    node->data     = ptr;
+    node->size     = size;
+    node->capacity = size;
+    node->borrowed = 1;
 }
 
 int vfs_read(vfs_node_t *node, void *buf, u64 size)

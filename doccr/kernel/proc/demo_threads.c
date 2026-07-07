@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: demo_threads.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -35,16 +35,9 @@ void worker_fn(void *arg)
     for (;;)
     {
         if ((count % 50) == 0)
-        {
-            print("worker[", white());
-            printInt((int)id, white());
-            print("] tick ", white());
-            printInt((int)count, white());
-            print("\n", white());
-        }
-        printf("[worker-%llu] tick=%u\n", id, count);
+            printf("[worker-%llu] tick=%u\n", id, count);
         count++;
 
-        sched_yield(); // sharing is caring
+        sched_yield();
     }
 }

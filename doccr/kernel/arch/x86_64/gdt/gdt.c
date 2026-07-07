@@ -14,8 +14,14 @@
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
 
+// The TSS descriptor is 16 bytes and occupies entries 5 and 6 (offsets 40–55).
+// GDT_ENTRIES must be exactly 7: entries 0-4 are regular 8-byte descriptors,
+// entries 5-6 form the 64-bit TSS descriptor. Fewer entries → overflow write;
+// more entries → gdt_ptr.limit would cover unused slots (harmless but wrong).
+_Static_assert(GDT_ENTRIES == 7,
+    "GDT_ENTRIES must be 7: null + kcode + kdata + udata + ucode + TSS(lo) + TSS(hi)");
+
 static gdt_entry_t gdt[GDT_ENTRIES];
-//static gdt_tss_entry_t tss_entry;
 static tss_t tss;
 static gdt_ptr_t gdt_ptr;
 
