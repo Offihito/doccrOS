@@ -22,7 +22,7 @@
 #include <kernel/proc/scheduler.h>
 #include <kernel/fs/vfs/vfs.h>
 #include <kernel/mem/meminclude.h>
-#include <kernel/elf/elf.h>
+#include <kernel/packages/elf/elf.h>
 
 #define KSHELL_BUF_MAX 256
 #define KSHELL_PROMPT  "ksh> "
@@ -31,7 +31,6 @@
 static void ksh_print(const char *s, u32 col)
 {
     print(s, col);
-    printf("%s", s);
 }
 
 static void ksh_newline(void)

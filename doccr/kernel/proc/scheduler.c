@@ -190,6 +190,7 @@ void sched_yield(void) {
     }
 
     switch_count++;
+    /*
     printf(
         "[SCHED] #%llu tick=%llu: '%s'(tid=%llu) -> '%s'(tid=%llu)\n",
         switch_count,
@@ -198,23 +199,26 @@ void sched_yield(void) {
         prev->tid,
         next->name,
         next->tid
-    );
+    );*/
 
     //log("sched", "yield now");
 
     next->state     = THREAD_RUNNING;
     current     = next;
 
-    printf("[SCHED] before activate: next='%s' owner=%p\n", next->name, (void*)next->owner);
+    //printf("[SCHED] before activate: next='%s' owner=%p\n", next->name, (void*)next->owner);
 
     if (next->owner && next->owner->space)
-    {
-        printf("[SCHED] activating space=%p pml4_phys=0x%llx\n",
-               (void*)next->owner->space, next->owner->space->pml4_phys);
+    {/*
+        printf(
+            "[SCHED] activating space=%p pml4_phys=0x%llx\n",
+            (void*)next->owner->space,
+            next->owner->space->pml4_phys
+        );*/
         vmm_space_activate(next->owner->space);
     }
 
-    printf("[SCHED] is_user=%d kstack_top=0x%llx\n", next->is_user, next->kstack_top);
+    //printf("[SCHED] is_user=%d kstack_top=0x%llx\n", next->is_user, next->kstack_top);
 
 
     __asm__ volatile("cli" ::: "memory");
@@ -225,7 +229,7 @@ void sched_yield(void) {
         syscall_update_kstack(next->kstack_top);
     }
 
-    printf("[SCHED] about to context_switch\n");
+    //printf("[SCHED] about to context_switch\n");
 
     context_switch(&prev->rsp, next->rsp);
 }

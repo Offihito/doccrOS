@@ -6,7 +6,7 @@
 # PROJECT: doccrOS
 # FILE: Makefile
 # CREATED BY: emex
-# MODIFIED BY: Offihito
+# MODIFIED BY: --
 #
 #
 
@@ -23,19 +23,12 @@ ARCH_SRCS := $(shell find $(ARCH_DIR) -name "*.c" -or -name "*.cpp" -or -name "*
 SRCS = $(COMMON_SRCS) $(ARCH_SRCS)
 OBJS = $(SRCS:%=$(BUILD_DIR)/%.o)
 
-TEST_ELF_SRC := user/test/test.asm
-TEST_ELF_OUT := $(DISK_DIR)/rd/bin/test.elf
+.PHONY: all fetchDeps disk run clean
+all: $(ISO)
 
-.PHONY: all fetchDeps disk run clean userspace
-all: userspace $(ISO)
-
-userspace: $(TEST_ELF_OUT)
-
-$(TEST_ELF_OUT): $(TEST_ELF_SRC)
-	@mkdir -p $(dir $@)
-	@echo "   AS   $<"
-	@nasm -f bin -o $@ $<
-	@echo "[OK] $@ built"
+userspace:
+	@$(MAKE) -C $(USERSPACE_DIR) clean
+	@$(MAKE) -C $(USERSPACE_DIR)
 
 # Fetch dependencies/libraries
 fetchDeps:
@@ -63,7 +56,7 @@ $(BUILD_DIR)/kernel.elf: $(ARCH_DIR)/linker.ld $(OBJS)
 	$(VLD) $(LDFLAGS) -T $< $(OBJS) -o $@
 
 # Create bootable ISO
-$(ISO): limine.conf $(BUILD_DIR)/kernel.elf userspace disk
+$(ISO): limine.conf $(BUILD_DIR)/kernel.elf disk userspace
 	@echo "[ISO] Creating bootable image..."
 	@rm -rf $(ISODIR)
 	@mkdir -p $(ISODIR)/boot/limine $(ISODIR)/EFI/BOOT
@@ -71,6 +64,9 @@ $(ISO): limine.conf $(BUILD_DIR)/kernel.elf userspace disk
 	@cp $< $(ISODIR)/boot/limine/
 	@cp $(addprefix $(INCLUDE_DIR)/limine/limine-, bios.sys bios-cd.bin uefi-cd.bin) $(ISODIR)/boot/limine/
 	@cp $(addprefix $(INCLUDE_DIR)/limine/BOOT, IA32.EFI X64.EFI) $(ISODIR)/EFI/BOOT/
+
+	#copying binaries
+	@cp $(USERSPACE_DIR)/bin/hello/hello.elf $(DISK_DIR)/rd/bin/
 
 	@echo "[MK] creating initrd.cpio..."
 	@chmod +x tools/initrd.sh

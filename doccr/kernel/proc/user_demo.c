@@ -20,7 +20,7 @@
 #include <kernel/arch/x86_64/user/syscall.h>
 #include <kernel/communication/serial.h>
 
-thread_t *g_debug_canary_thread = NULL;   // <-- neu
+thread_t *g_debug_canary_thread = NULL;
 
 #define CHECK_CANARY(label) \
     do { \
@@ -32,8 +32,6 @@ thread_t *g_debug_canary_thread = NULL;   // <-- neu
 #define USER_STACK_VA 0x0000700000100000ULL
 #define STR_OFFSET    128
 
-// baut: mov rdi,str_va; mov rsi,len; mov eax,SYS_WRITE; int 0x80;
-//       mov eax,SYS_EXIT; int 0x80;   + den String selbst bei STR_OFFSET
 static void build_user_demo_code(u8 *buf, u64 code_va)
 {
     const char *msg = "Hello from userspace!\n";

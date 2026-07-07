@@ -34,8 +34,7 @@ void worker_fn(void *arg)
 
     for (;;)
     {
-        if ((count % 50) == 0)
-            printf("[worker-%llu] tick=%u\n", id, count);
+        //if ((count % 50) == 0) printf("[worker-%llu] tick=%u\n", id, count);
         count++;
 
         sched_yield();

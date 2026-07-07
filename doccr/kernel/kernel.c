@@ -106,12 +106,6 @@ void _start(void)
 
     g_debug_canary_thread = t_idle;
 
-    /*printf(
-        "[CANARY] idle rsp=0x%llx trampoline@rsp=0x%llx\n",
-        t_idle->rsp,
-        *(u64*)t_idle->rsp
-    );*/
-
 
     sched_enable();
 
@@ -121,15 +115,10 @@ void _start(void)
 
     devices_init();
     kernel_devices_init();
-    //vmm_run_all_tests();
 
     kshell_init(kproc);
 
-    //printf("[CANARY] before user_demo_init: 0x%llx\n", *(u64*)t_idle->rsp);
-
     user_demo_init();
-
-    //printf("[CANARY] after user_demo_init: 0x%llx\n", *(u64*)t_idle->rsp);
 
     //should not reach here
     #if USE_HCF == 1

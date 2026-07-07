@@ -6,7 +6,8 @@
  *
  * PROJECT: doccrOS
  * FILE: syscall.c
- * CREATED BY: Offihito
+ * CREATED BY: emex
+ * MODIFIED BY: Offihito
  *
  */
 
