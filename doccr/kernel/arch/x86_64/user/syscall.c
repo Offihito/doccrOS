@@ -1,3 +1,4 @@
+
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -5,25 +6,64 @@
  *
  * PROJECT: doccrOS
  * FILE: syscall.c
- * CREATED BY: emex
- * MODIFIED BY: --
+ * CREATED BY: Offihito
  *
  */
 
 #include "syscall.h"
 #include <kernel/arch/x86_64/idt/idt.h>
+#include <kernel/arch/x86_64/gdt/gdt.h>
 #include <kernel/mem/vmm/vmm.h>
 #include <kernel/proc/thread.h>
 #include <kernel/screen/lib/print.h>
 
+u64 syscall_scratch[2];
+
+static inline void wrmsr(u32 msr, u64 val)
+{
+    __asm__ volatile(
+        "wrmsr"
+        :
+        : "c"(msr), "a"((u32)(val & 0xFFFFFFFF)), "d"((u32)(val >> 32))
+    );
+}
+
+static inline u64 rdmsr(u32 msr)
+{
+    u32 lo, hi;
+    __asm__ volatile("rdmsr" : "=a"(lo), "=d"(hi) : "c"(msr));
+    return ((u64)hi << 32) | lo;
+}
+
+static void syscall_enable(void)
+{
+    u64 efer = rdmsr(MSR_EFER);
+    wrmsr(MSR_EFER, efer | EFER_SCE);
+
+    u64 star = ((u64)KERNEL_CODE_SELECTOR << 32) |
+               ((u64)KERNEL_DATA_SELECTOR << 48);
+    wrmsr(MSR_STAR, star);
+
+    wrmsr(MSR_LSTAR, (u64)syscall_entry);
+
+    wrmsr(MSR_SFMASK, (1 << 9));
+}
+
 void syscall_install(void)
 {
     idt_set_gate(128, (u64)isr128, IDT_FLAG_PRESENT | IDT_FLAG_RING3 | IDT_FLAG_GATE_INT);
+    syscall_enable();
+    log("[SYSCALL]", "INT 128 + SYSCALL/SYSRET enabled\n");
+}
+
+void syscall_update_kstack(u64 kstack_top)
+{
+    syscall_scratch[1] = kstack_top;
 }
 
 static int user_ptr_ok(u64 ptr)
 {
-    return ptr >= VMM_BASE && ptr < VMM_LIMIT;
+    return ptr != 0 && ptr <= 0x00007FFFFFFFFFFFULL;
 }
 
 void syscall_dispatch(cpu_state_t *state)
@@ -32,7 +72,7 @@ void syscall_dispatch(cpu_state_t *state)
 
     if (num == SYS_EXIT)
     {
-        thread_exit(); //doesnt return
+        thread_exit();
     }
 
     switch (num)
@@ -44,11 +84,8 @@ void syscall_dispatch(cpu_state_t *state)
 
             if (user_ptr_ok((u64)buf))
             {
-                for (
-                    u64 i = 0;
-                    i < len && buf[i];
-                    i++
-                ) putchar(buf[i], white());
+                for (u64 i = 0; i < len && buf[i]; i++)
+                    putchar(buf[i], white());
             }
 
             state->rax = len;

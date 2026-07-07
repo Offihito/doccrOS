@@ -16,6 +16,7 @@ global arch_enter_usermode
 
 ; ok so it took me 2 months in emexOS i hope i can do it better this time TT
 arch_enter_usermode:
+    cli                 ; must stay off until iretq restores user RFLAGS
     mov rax, rdi ; entry point
     mov rcx, rsi ; user stack top
     mov rdi, rdx ; SysV first arg
@@ -29,9 +30,9 @@ arch_enter_usermode:
     push rcx ;  RSP
     pushfq
     pop r11
-    or r11, 0x200 ; 1
+    or r11, 0x200 ; set IF so user code runs with interrupts on
     push r11   ; RFLAGS
-    push 0x23  ; CS 0x20 a RPL3
+    push 0x23  ; CS 0x20 | RPL3
     push rax   ; RIP
 
     iretq

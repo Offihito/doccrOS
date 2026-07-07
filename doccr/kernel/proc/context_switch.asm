@@ -6,7 +6,7 @@
 ; PROJECT: doccrOS
 ; FILE: context_switch.asm
 ; CREATED BY: emex
-; MODIFIED BY: --
+; MODIFIED BY: Offihito
 ;
 ;
 
@@ -20,27 +20,27 @@ global user_thread_trampoline
 extern arch_enter_usermode
 
 context_switch:
+    pushfq              
+    cli                 
     push rbp
     push rbx
     push r12
     push r13
     push r14
     push r15
-    pushfq
 
-    cli
-    mov [rdi], rsp
-    mov rsp, rsi
+    mov [rdi], rsp      
+    mov rsp, rsi       
 
-    popfq
     pop r15
     pop r14
     pop r13
     pop r12
     pop rbx
     pop rbp
+    popfq            
 
-    ret
+    ret                
 
 thread_trampoline:
     mov rdi, r13

@@ -6,7 +6,7 @@
 # PROJECT: doccrOS
 # FILE: Makefile
 # CREATED BY: emex
-# MODIFIED BY: --
+# MODIFIED BY: Offihito
 #
 #
 
@@ -23,8 +23,19 @@ ARCH_SRCS := $(shell find $(ARCH_DIR) -name "*.c" -or -name "*.cpp" -or -name "*
 SRCS = $(COMMON_SRCS) $(ARCH_SRCS)
 OBJS = $(SRCS:%=$(BUILD_DIR)/%.o)
 
-.PHONY: all fetchDeps disk run clean
-all: $(ISO)
+TEST_ELF_SRC := user/test/test.asm
+TEST_ELF_OUT := $(DISK_DIR)/rd/bin/test.elf
+
+.PHONY: all fetchDeps disk run clean userspace
+all: userspace $(ISO)
+
+userspace: $(TEST_ELF_OUT)
+
+$(TEST_ELF_OUT): $(TEST_ELF_SRC)
+	@mkdir -p $(dir $@)
+	@echo "   AS   $<"
+	@nasm -f bin -o $@ $<
+	@echo "[OK] $@ built"
 
 # Fetch dependencies/libraries
 fetchDeps:
@@ -52,7 +63,7 @@ $(BUILD_DIR)/kernel.elf: $(ARCH_DIR)/linker.ld $(OBJS)
 	$(VLD) $(LDFLAGS) -T $< $(OBJS) -o $@
 
 # Create bootable ISO
-$(ISO): limine.conf $(BUILD_DIR)/kernel.elf disk
+$(ISO): limine.conf $(BUILD_DIR)/kernel.elf userspace disk
 	@echo "[ISO] Creating bootable image..."
 	@rm -rf $(ISODIR)
 	@mkdir -p $(ISODIR)/boot/limine $(ISODIR)/EFI/BOOT

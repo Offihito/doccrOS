@@ -231,7 +231,7 @@ void physmem_init(limine_memmap_response_t *mpr, limine_hhdm_response_t *hpr) {
     u64 to_used = used_bytes_to_frame_count(physmem_size + bitmap_size);
     physmem_addr_mark_used((u64)physmem_pageframe_addr, to_used);
 
-    physmem_addr_mark_used(0, 1);
+    physmem_addr_mark_used(0, 256); // 256 * 4KB = 1 MB
 }
 
 /// Summary

@@ -5,8 +5,8 @@
  *
  * PROJECT: doccrOS
  * FILE: cpio.c
- * CREATED BY: --
- * MODIFIED BY: --
+ * CREATED BY: emex
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -137,7 +137,7 @@ void cpio_extract(void *archive, u64 size)
                 vfs_node_t *f = vfs_create_file(name);
                 if (f && filesize > 0)
                 {
-                    vfs_write(f, base + data_off, filesize);
+                    vfs_set_data(f, base + data_off, filesize);
                 }
 
                 done++;

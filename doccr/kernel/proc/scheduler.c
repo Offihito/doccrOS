@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: scheduler.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -17,6 +17,7 @@
 #include <kernel/communication/serial.h>
 #include <kernel/mem/vmm/vmm.h>
 #include <kernel/arch/x86_64/gdt/gdt.h>
+#include <kernel/arch/x86_64/user/syscall.h>
 
 #define QUANTUM 10
 
@@ -215,8 +216,14 @@ void sched_yield(void) {
 
     printf("[SCHED] is_user=%d kstack_top=0x%llx\n", next->is_user, next->kstack_top);
 
+
+    __asm__ volatile("cli" ::: "memory");
+
     if (next->is_user)
+    {
         gdt_set_kernel_stack(next->kstack_top);
+        syscall_update_kstack(next->kstack_top);
+    }
 
     printf("[SCHED] about to context_switch\n");
 
