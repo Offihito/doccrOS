@@ -4,7 +4,7 @@
  * Copyright (c) 2026 doccrLabs
  *
  * PROJECT: doccrOS
- * FILE: user_demo.h
+ * FILE: init.h
  * CREATED BY: emex
  * MODIFIED BY: --
  *
@@ -14,7 +14,7 @@
 #define USER_DEMO_H
 
 #include <kernel/proc/thread.h>
-extern thread_t *g_debug_canary_thread;
+//extern thread_t *g_debug_canary_thread;
 
-void user_demo_init(void);
+void user_start(void);
 #endif

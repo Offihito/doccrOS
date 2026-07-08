@@ -118,7 +118,7 @@ void _start(void)
 
     kshell_init(kproc);
 
-    user_demo_init();
+    user_start();
 
     //should not reach here
     #if USE_HCF == 1

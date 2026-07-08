@@ -121,8 +121,7 @@ int elf_load(const u8 *data, u64 size, const char *name)
         const elf64_phdr_t *ph =
             (const elf64_phdr_t *)(data + eh->e_phoff + (u64)i * eh->e_phentsize);
 
-        if (ph->p_type != PT_LOAD)
-            continue;
+        if (ph->p_type != PT_LOAD) continue;
 
         printf(
             "[ELF] seg %u: vaddr=0x%llx filesz=%llu memsz=%llu flags=%c%c%c\n",
