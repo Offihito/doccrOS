@@ -14,9 +14,13 @@ all:
 
 	@$(MAKE) -C bin/hello
 
+	@$(MAKE) -C bin/fork_test
+
 clean:
 	@$(MAKE) -C libc clean
 
 	@$(MAKE) -C bin/hello clean
+
+	@$(MAKE) -C bin/fork_test clean
 
 .PHONY: all clean

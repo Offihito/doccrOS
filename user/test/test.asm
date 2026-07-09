@@ -1,7 +1,8 @@
 [BITS 64]
 
-%define SYS_EXIT  0
+%define SYS_READ  0
 %define SYS_WRITE 1
+%define SYS_EXIT  60
 
 %define LOAD_VA 0x0000400000000000
 

@@ -39,6 +39,11 @@ long getpid(void)
     return syscall3(SYS_GETPID, 0, 0, 0);
 }
 
+long fork(void)
+{
+    return syscall3(SYS_FORK, 0, 0, 0);
+}
+
 void yield(void)
 {
     syscall3(SYS_YIELD, 0, 0, 0);

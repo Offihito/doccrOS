@@ -11,14 +11,11 @@
  */
 
 #include "syscall.h"
+#include "sys_io.h"
+#include "sys_process.h"
 #include <kernel/arch/x86_64/idt/idt.h>
 #include <kernel/arch/x86_64/gdt/gdt.h>
-#include <kernel/mem/vmm/vmm.h>
-#include <kernel/proc/thread.h>
-#include <kernel/proc/process.h>
-#include <kernel/proc/scheduler.h>
 #include <kernel/screen/lib/print.h>
-#include <kernel/arch/x86_64/drivers/ps2/keyboard/keyboard.h>
 
 u64 syscall_scratch[2];
 
@@ -64,87 +61,16 @@ void syscall_update_kstack(u64 kstack_top)
     syscall_scratch[1] = kstack_top;
 }
 
-static int user_ptr_ok(u64 ptr)
-{
-    return ptr != 0 && ptr <= 0x00007FFFFFFFFFFFULL;
-}
-
 void syscall_dispatch(cpu_state_t *state)
 {
-    u64 num = state->rax;
-
-    /*if (num == SYS_EXIT)
+    switch (state->rax)
     {
-        thread_exit();
-    }*/
-
-    switch (num)
-    {
-
-    // TODO:
-    // move that shit to other files mate!!
-        case SYS_EXIT:
-        {
-            thread_exit();
-            break;
-        }
-
-        case SYS_WRITE:
-        {
-            u64 fd  = state->rdi;
-            const char *buf = (const char *)state->rsi;
-            u64 len  = state->rdx;
-
-            if ((fd == 1 || fd == 2) && user_ptr_ok((u64)buf))
-            {
-                for (u64 i = 0; i < len; i++) putchar(buf[i], white());
-                state->rax = len;
-            }
-            else
-            {
-                state->rax = (u64)-1;
-            }
-            break;
-        }
-
-        case SYS_READ:
-        {
-            u64 fd  = state->rdi;
-            char *buf = (char *)state->rsi;
-            u64 len = state->rdx;
-
-            //TODO:
-            // then from /dev/input/keyboard
-            if (fd == 0 && user_ptr_ok((u64)buf))
-            {
-                u64 n = 0;
-                while (n < len && keyboard_has_key())
-                    buf[n++] = keyboard_get_key();
-                state->rax = n;
-            }
-            else
-            {
-                state->rax = (u64)-1;
-            }
-            break;
-        }
-
-        case SYS_YIELD:
-        {
-            sched_yield();
-
-            state->rax  = 0;
-            break;
-        }
-
-        case SYS_GETPID:
-        {
-            proc_t *p = process_get_current();
-
-            state->rax = p ? p->pid : (u64)-1;
-            break;
-        }
-
+        case SYS_READ:    sys_read(state);    break;
+        case SYS_WRITE:   sys_write(state);   break;
+        case SYS_FORK:    sys_fork(state);    break;
+        case SYS_EXIT:    sys_exit(state);    break;
+        case SYS_YIELD:   sys_yield(state);   break;
+        case SYS_GETPID:  sys_getpid(state);  break;
         default:
             state->rax = (u64)-1;
             break;

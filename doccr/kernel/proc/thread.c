@@ -28,6 +28,11 @@ void thread_subsystem_init(void) {
     next_tid     = 1;
 }
 
+u64 thread_alloc_tid(void)
+{
+    return next_tid++;
+}
+
 thread_t *thread_create(proc_t *owner, const char *name, thread_entry_t entry, void *arg)
 {
     if (!entry) return NULL; // cant run nothing, sorry

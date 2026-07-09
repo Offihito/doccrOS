@@ -18,8 +18,8 @@
 #include <kernel/screen/lib/log.h>
 #include <kernel/communication/serial.h>
 
-#define SYSTEM_PATH "/bin/hello.elf"
-#define SYSTEM_NAME "hello.elf"
+#define SYSTEM_PATH "/bin/fork_test.elf"
+#define SYSTEM_NAME "fork_test.elf"
 
 void user_start(void)
 {

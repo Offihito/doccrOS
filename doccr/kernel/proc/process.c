@@ -11,9 +11,12 @@
  */
 
 #include "process.h"
+#include "scheduler.h"
 #include <kernel/mem/meminclude.h>
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
+
+extern void fork_child_return(void);
 
 #define STACK_SIZE 8192
 
@@ -174,4 +177,123 @@ proc_t *process_get_current(void)
     thread_t *t =    thread_get_current();
 
     return t ? t->owner  : NULL;
+}
+
+proc_t *process_fork(cpu_state_t *parent_state)
+{
+    proc_t   *parent = process_get_current();
+    thread_t *parent_thread = thread_get_current();
+
+    if (!parent || !parent_thread) return NULL;
+
+    proc_t *child = proc_alloc(parent->name);
+    if (!child) return NULL;
+
+    child->space = vmm_clone_space(parent->space);
+    if (!child->space)
+    {
+        proc_t *cur = head, *prev = NULL;
+        while (cur) {
+            if (cur == child) {
+                if (prev) prev->next = cur->next;
+                else      head       = cur->next;
+                break;
+            }
+            prev = cur; cur = cur->next;
+        }
+        kfree((u64 *)child);
+        return NULL;
+    }
+
+    thread_t *ct = (thread_t *)kcalloc(1, sizeof(thread_t));
+    if (!ct)
+    {
+        vmm_space_destroy(child->space);
+        proc_t *cur = head, *prev = NULL;
+        while (cur) {
+            if (cur == child) {
+                if (prev) prev->next = cur->next;
+                else      head       = cur->next;
+                break;
+            }
+            prev = cur; cur = cur->next;
+        }
+        kfree((u64 *)child);
+        return NULL;
+    }
+
+    u8 *kstack = (u8 *)kmalloc(THREAD_STACK_SIZE);
+    if (!kstack)
+    {
+        kfree((u64 *)ct);
+        vmm_space_destroy(child->space);
+        proc_t *cur = head, *prev = NULL;
+        while (cur) {
+            if (cur == child) {
+                if (prev) prev->next = cur->next;
+                else      head       = cur->next;
+                break;
+            }
+            prev = cur; cur = cur->next;
+        }
+        kfree((u64 *)child);
+        return NULL;
+    }
+
+    int i = 0;
+    while (parent_thread->name[i] && i < THREAD_NAME_MAX - 1) {
+        ct->name[i] = parent_thread->name[i];
+        i++;
+    }
+    ct->name[i]    = '\0';
+    ct->tid        = thread_alloc_tid();
+    ct->state      = THREAD_READY;
+    ct->stack_base = kstack;
+    ct->stack_size = THREAD_STACK_SIZE;
+    ct->is_user    = 1;
+    ct->kstack_top = (u64)(kstack + THREAD_STACK_SIZE);
+    ct->owner      = child;
+    ct->proc_next  = NULL;
+    ct->sched_next = NULL;
+
+    ct->fork_user_r15    = parent_state->r15;
+    ct->fork_user_r14    = parent_state->r14;
+    ct->fork_user_r13    = parent_state->r13;
+    ct->fork_user_r12    = parent_state->r12;
+    ct->fork_user_r11    = parent_state->r11;
+    ct->fork_user_r10    = parent_state->r10;
+    ct->fork_user_r9     = parent_state->r9;
+    ct->fork_user_r8     = parent_state->r8;
+    ct->fork_user_rbp    = parent_state->rbp;
+    ct->fork_user_rdi    = parent_state->rdi;
+    ct->fork_user_rsi    = parent_state->rsi;
+    ct->fork_user_rdx    = parent_state->rdx;
+    ct->fork_user_rcx    = parent_state->rcx;
+    ct->fork_user_rbx    = parent_state->rbx;
+    ct->fork_user_rax    = 0;
+    ct->fork_user_rip    = parent_state->rip;
+    ct->fork_user_rflags = parent_state->rflags;
+    ct->fork_user_rsp    = parent_state->rsp;
+
+    u64 *sp = (u64 *)(kstack + THREAD_STACK_SIZE);
+
+    *(--sp) = (u64)fork_child_return;
+    *(--sp) = 0x202;
+    *(--sp) = 0;
+    *(--sp) = 0;
+    *(--sp) = 0;
+    *(--sp) = 0;
+    *(--sp) = 0;
+    *(--sp) = (u64)ct;
+
+    ct->rsp = (u64)sp;
+
+    ct->proc_next   = child->threads;
+    child->threads  = ct;
+    child->thread_count++;
+    child->alive_count++;
+
+    sched_add(ct);
+
+    return child;
 }

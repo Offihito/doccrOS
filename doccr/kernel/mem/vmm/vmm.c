@@ -578,23 +578,23 @@ void vmm_cow_break(vmm_space_t *space, u64 fault_addr)
     paging_map_page_in(space->pml4_phys, fault_addr, new_phys, pte_flags);
 }
 
-static vmm_space_t **cow_current_space = NULL;
-
 static void cow_page_fault_handler(cpu_state_t *state)
 {
     u64 fault_addr;
     __asm__ volatile("mov %%cr2, %0" : "=r"(fault_addr));
 
-    u64 err = state->err_code;
-    int present   = (err & (1 << 0)) != 0;
-    int write     = (err & (1 << 1)) != 0;
+    u64 err     = state->err_code;
+    int present = (err & (1 << 0)) != 0;
+    int write   = (err & (1 << 1)) != 0;
 
-    if (present && write && cow_current_space && *cow_current_space)
+    vmm_space_t *space = vmm_get_active_space();
+
+    if (present && write && space)
     {
-        vmm_region_t *region = vmm_space_find(*cow_current_space, fault_addr);
+        vmm_region_t *region = vmm_space_find(space, fault_addr);
         if (region && (region->flags & VMM_REGION_COW))
         {
-            vmm_cow_break(*cow_current_space, fault_addr);
+            vmm_cow_break(space, fault_addr);
             return;
         }
     }
@@ -602,9 +602,8 @@ static void cow_page_fault_handler(cpu_state_t *state)
     panic_exception(state, "Page Fault");
 }
 
-void vmm_cow_install_handler(vmm_space_t **current_space_ptr)
+void vmm_cow_install_handler(void)
 {
-    cow_current_space = current_space_ptr;
     isr_register_handler(ISR_PAGE_FAULT, cow_page_fault_handler);
 }
 
