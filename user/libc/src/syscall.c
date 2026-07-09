@@ -6,7 +6,7 @@
  * PROJECT: doccrOS userspace
  * FILE: syscall.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -32,6 +32,16 @@ long write(int fd, const void *buf, size_t count)
 long read(int fd, void *buf, size_t count)
 {
     return syscall3(SYS_READ, fd, (long)buf, (long)count);
+}
+
+long open(const char *path, int flags)
+{
+    return syscall3(SYS_OPEN, (long)path, flags, 0);
+}
+
+long close(int fd)
+{
+    return syscall3(SYS_CLOSE, fd, 0, 0);
 }
 
 long getpid(void)

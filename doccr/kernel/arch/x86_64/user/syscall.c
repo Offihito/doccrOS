@@ -12,6 +12,7 @@
 
 #include "syscall.h"
 #include "sys_io.h"
+#include "sys_fs.h"
 #include "sys_process.h"
 #include <kernel/arch/x86_64/idt/idt.h>
 #include <kernel/arch/x86_64/gdt/gdt.h>
@@ -67,6 +68,8 @@ void syscall_dispatch(cpu_state_t *state)
     {
         case SYS_READ:    sys_read(state);    break;
         case SYS_WRITE:   sys_write(state);   break;
+        case SYS_OPEN:    sys_open(state);    break;
+        case SYS_CLOSE:   sys_close(state);   break;
         case SYS_FORK:    sys_fork(state);    break;
         case SYS_EXIT:    sys_exit(state);    break;
         case SYS_YIELD:   sys_yield(state);   break;

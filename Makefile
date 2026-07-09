@@ -6,7 +6,7 @@
 # PROJECT: doccrOS
 # FILE: Makefile
 # CREATED BY: emex
-# MODIFIED BY: --
+# MODIFIED BY: Offihito
 #
 #
 
@@ -72,6 +72,7 @@ $(ISO): limine.conf build_num $(BUILD_DIR)/kernel.elf disk userspace
 	#copying binaries
 	@cp $(USERSPACE_DIR)/bin/hello/hello.elf $(DISK_DIR)/rd/bin/
 	@cp $(USERSPACE_DIR)/bin/fork_test/fork_test.elf $(DISK_DIR)/rd/bin/
+	@cp $(USERSPACE_DIR)/bin/syscall_test/syscall_test.elf $(DISK_DIR)/rd/bin/
 
 	@echo "[MK] creating initrd.cpio..."
 	@chmod +x tools/initrd.sh

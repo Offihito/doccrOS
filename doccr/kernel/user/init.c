@@ -21,6 +21,9 @@
 #define SYSTEM_PATH "/bin/fork_test.elf"
 #define SYSTEM_NAME "fork_test.elf"
 
+#define SYSCALL_TEST_PATH "/bin/syscall_test.elf"
+#define SYSCALL_TEST_NAME "syscall_test.elf"
+
 void user_start(void)
 {
     vfs_node_t *node = vfs_find(SYSTEM_PATH);
@@ -49,4 +52,19 @@ void user_start(void)
     }
 
     log("[USER]", "loading was a success!\n", success);
+
+    vfs_node_t *test_node = vfs_find(SYSCALL_TEST_PATH);
+
+    if (!test_node || test_node->type != VFS_FILE || !test_node->data || test_node->size == 0) {
+        log("[USER]", "syscall_test.elf not found or empty, skipping\n", warning);
+        return;
+    }
+
+    printf("[USER] found, load '%s' <%llu bytes>\n", SYSCALL_TEST_PATH, test_node->size);
+
+    int rc2 = elf_load(test_node->data, test_node->size, SYSCALL_TEST_NAME);
+    if (rc2 != 0)
+        log("[USER]", "could not load syscall_test.elf\n", warning);
+    else
+        log("[USER]", "syscall_test loading was a success!\n", success);
 }

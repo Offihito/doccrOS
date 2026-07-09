@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: process.h
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -17,6 +17,15 @@
 #include "thread.h"
 #include <kernel/mem/vmm/vmm.h>
 #include <kernel/arch/x86_64/idt/idt.h>
+#include <kernel/fs/vfs/vfs.h>
+
+#define FD_MAX 64
+
+typedef struct {
+    vfs_node_t *node;
+    u64         offset;
+    int         used;
+} file_descriptor_t;
 
 typedef enum {
     PROC_ALIVE,
@@ -34,9 +43,11 @@ typedef struct proc
 
     vmm_space_t  *space;
 
-    thread_t     *threads;      // all threads living in this proc
+    thread_t     *threads;
     int    thread_count;
     int    alive_count;
+
+    file_descriptor_t fd_table[FD_MAX];
 
     struct proc     *next;
 } proc_t;

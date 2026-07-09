@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: process.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -53,6 +53,10 @@ static proc_t *proc_alloc(const char *name)
     p->thread_count = 0;
     p->alive_count  = 0;
     p->next = head;
+
+    p->fd_table[0].used = 1;
+    p->fd_table[1].used = 1;
+    p->fd_table[2].used = 1;
 
     int i =    0;
     if (name)
