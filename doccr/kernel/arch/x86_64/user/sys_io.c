@@ -6,12 +6,14 @@
  * PROJECT: doccrOS
  * FILE: sys_io.c
  * CREATED BY: Offihito
+ * MODIFIED BY: emex
  *
  */
 
 #include "sys_io.h"
 #include <kernel/screen/lib/print.h>
 #include <kernel/arch/x86_64/drivers/ps2/keyboard/keyboard.h>
+#include <kernel/communication/serial.h>
 
 static int user_ptr_ok(u64 ptr)
 {
@@ -46,7 +48,11 @@ void sys_write(cpu_state_t *state)
 
     if ((fd == 1 || fd == 2) && user_ptr_ok((u64)buf))
     {
-        for (u64 i = 0; i < len; i++) putchar(buf[i], white());
+        for (u64 i = 0; i < len; i++)
+        {
+            putchar(buf[i], white());
+            serial_putchar(buf[i]);
+        }
         state->rax = len;
     }
     else

@@ -6,6 +6,7 @@
  * PROJECT: doccrOS
  * FILE: sys_process.c
  * CREATED BY: Offihito
+ * MODIFIED BY: emex
  *
  */
 
@@ -37,4 +38,47 @@ void sys_fork(cpu_state_t *state)
 {
     proc_t *child = process_fork(state);
     state->rax = child ? child->pid : (u64)-1;
+}
+
+void sys_waitpid(cpu_state_t *state)
+{
+    i64 target_pid = (i64)state->rdi;
+    int *wstatus_ptr = (int *)state->rsi;
+
+    proc_t *caller    = process_get_current();
+    if (!caller)
+    {
+        state->rax    = (u64)-1;
+        return;
+    }
+
+    int exit_code    = 0;
+    int result       = process_waitpid(caller, target_pid, &exit_code);
+
+    if (result != 0)
+    {
+        state->rax   = (u64)-1; // no dead kids found
+        return;
+    }
+
+
+    if (
+    	wstatus_ptr &&
+     	(u64)wstatus_ptr <= 0x00007FFFFFFFFFFFULL
+    )*wstatus_ptr  = (exit_code & 0xFF) << 8;
+
+    state->rax     = (u64)target_pid;
+}
+
+//always 0 for now cuz were jst root
+void sys_getuid(cpu_state_t *state)
+{
+    proc_t *p = process_get_current();
+    state->rax = p ? (u64)p->uid : 0; // 0 = root, this is fine trust me
+}
+
+void sys_getgid(cpu_state_t *state)
+{
+    proc_t *p = process_get_current();
+    state->rax = p ? (u64)p->gid : 0;
 }

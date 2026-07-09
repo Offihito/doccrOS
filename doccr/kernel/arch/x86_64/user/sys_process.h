@@ -6,6 +6,7 @@
  * PROJECT: doccrOS
  * FILE: sys_process.h
  * CREATED BY: Offihito
+ * MODIFIED BY: emex
  *
  */
 
@@ -19,5 +20,8 @@ void sys_exit(cpu_state_t *state);
 void sys_yield(cpu_state_t *state);
 void sys_getpid(cpu_state_t *state);
 void sys_fork(cpu_state_t *state);
+void sys_waitpid(cpu_state_t *state);
+void sys_getuid(cpu_state_t *state);
+void sys_getgid(cpu_state_t *state);
 
 #endif

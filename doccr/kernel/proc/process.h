@@ -41,6 +41,11 @@ typedef struct proc
     proc_state_t  state;
     int      exit_code;
 
+    u32     uid;
+    u32     gid;
+
+    u64      heap_break;
+
     vmm_space_t  *space;
 
     thread_t     *threads;
@@ -59,6 +64,8 @@ proc_t *process_create(const char *name);
 proc_t *process_create_user(const char *name);
 proc_t *process_get_current(void);
 proc_t *process_fork(cpu_state_t *parent_state);
+
+int process_waitpid(proc_t *parent, i64 target_pid, int *exit_code_out);
 
 void process_exit(proc_t *p, int exit_code);
 void process_reap_zombies(void);

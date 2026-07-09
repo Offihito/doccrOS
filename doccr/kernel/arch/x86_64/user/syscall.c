@@ -11,9 +11,13 @@
  */
 
 #include "syscall.h"
+
 #include "sys_io.h"
 #include "sys_fs.h"
 #include "sys_process.h"
+#include "sys_mem.h"
+
+
 #include <kernel/arch/x86_64/idt/idt.h>
 #include <kernel/arch/x86_64/gdt/gdt.h>
 #include <kernel/screen/lib/print.h>
@@ -66,14 +70,24 @@ void syscall_dispatch(cpu_state_t *state)
 {
     switch (state->rax)
     {
-        case SYS_READ:    sys_read(state);    break;
-        case SYS_WRITE:   sys_write(state);   break;
-        case SYS_OPEN:    sys_open(state);    break;
-        case SYS_CLOSE:   sys_close(state);   break;
-        case SYS_FORK:    sys_fork(state);    break;
-        case SYS_EXIT:    sys_exit(state);    break;
-        case SYS_YIELD:   sys_yield(state);   break;
-        case SYS_GETPID:  sys_getpid(state);  break;
+	    case SYS_READ:         sys_read(state);         break;
+	    case SYS_WRITE:        sys_write(state);        break;
+	    case SYS_OPEN:         sys_open(state);         break;
+	    case SYS_CLOSE:        sys_close(state);        break;
+	    case SYS_LSEEK:        sys_lseek(state);        break;
+	    case SYS_MMAP:         sys_mmap(state);         break;
+	    case SYS_MUNMAP:       sys_munmap(state);       break;
+	    case SYS_BRK:          sys_brk(state);          break;
+	    case SYS_FORK:         sys_fork(state);         break;
+	    case SYS_EXIT:         sys_exit(state);         break;
+	    case SYS_YIELD:        sys_yield(state);        break;
+	    case SYS_GETPID:       sys_getpid(state);       break;
+	    case SYS_WAITPID:      sys_waitpid(state);      break;
+	    case SYS_GETDENTS:     sys_getdents(state);     break;
+	    case SYS_MKDIR:        sys_mkdir(state);        break;
+	    case SYS_UNLINK:       sys_unlink(state);       break;
+	    case SYS_GETUID:       sys_getuid(state);       break;
+	    case SYS_GETGID:       sys_getgid(state);       break;
         default:
             state->rax = (u64)-1;
             break;

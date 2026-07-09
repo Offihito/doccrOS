@@ -6,6 +6,7 @@
  * PROJECT: doccrOS
  * FILE: sys_fs.h
  * CREATED BY: Offihito
+ * MODIFIED BY: emex
  *
  */
 
@@ -17,5 +18,9 @@
 
 void sys_open(cpu_state_t *state);
 void sys_close(cpu_state_t *state);
+void sys_lseek(cpu_state_t *state);
+void sys_getdents(cpu_state_t *state);
+void sys_mkdir(cpu_state_t *state);
+void sys_unlink(cpu_state_t *state);
 
 #endif

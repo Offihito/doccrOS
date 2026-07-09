@@ -37,7 +37,7 @@ void bootscreen_layout_init(void)
     bs.Screens[BS1].x           = 0;
     bs.Screens[BS1].y           = 0;
     bs.Screens[BS1].width       = half;
-    bs.Screens[BS1].height      = mid;
+    bs.Screens[BS1].height      = fh;
 
     // BS2 top right
     bs.Screens[BS2].cursor_x    = 0;
@@ -53,18 +53,18 @@ void bootscreen_layout_init(void)
     bs.Screens[BS3].cursor_y    = 0;
     bs.Screens[BS3].buffer      = bs_buf_bs3;
     bs.Screens[BS3].x           = 0;
-    bs.Screens[BS3].y           = mid;
-    bs.Screens[BS3].width       = half;
-    bs.Screens[BS3].height      = mid;
+    bs.Screens[BS3].y           = 0;
+    bs.Screens[BS3].width       = fw;
+    bs.Screens[BS3].height      = fh;
 
     // BS4 bottom right
     bs.Screens[BS4].cursor_x    = 0;
     bs.Screens[BS4].cursor_y    = 0;
     bs.Screens[BS4].buffer      = bs_buf_bs4;
-    bs.Screens[BS4].x           = half;
-    bs.Screens[BS4].y           = mid;
-    bs.Screens[BS4].width       = half;
-    bs.Screens[BS4].height      = mid;
+    bs.Screens[BS4].x           = 0;
+    bs.Screens[BS3].y           = 0;
+    bs.Screens[BS3].width       = fw;
+    bs.Screens[BS3].height      = fh;
 
     bs.SwitchScreen(BS1);
 }

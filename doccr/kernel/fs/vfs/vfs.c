@@ -209,9 +209,9 @@ vfs_node_t *vfs_create_file(const char *path)
 int vfs_remove(const char *path)
 {
     vfs_node_t *node = vfs_find(path);
-    vfs_node_t *parent = node->parent;
-
     if (!node || node == vfs_root) return -1; // no deleting the root if no permission
+
+    vfs_node_t *parent = node->parent;
     if (!parent) return -1;
 
     if (

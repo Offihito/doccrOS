@@ -64,14 +64,14 @@ void _start(void)
     struct limine_framebuffer *fb = framebuffer_request.response->framebuffers[0];
     graphics_init(fb);
     draw_logo();
-    bs.Clear(BS1);
 
-    // backspace and tab have special texture, ik its a bad solution sowey :/
-    print("\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b \n", blue());
-    print("|   ", blue());
-    print("Welcome to doccrOS  ", white());
-    print("| \n", blue());
-    print("\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b-\t-\b \n\n", blue());
+    //full buffer clear even tho they werent used yet
+    bs.Clear(BS1);
+    bs.Clear(BS2);
+    bs.Clear(BS3);
+    bs.Clear(BS4);
+
+    print("Welcome to doccrOS \n\n", white());
 
     {
         physmem_init(memmap_request.response, hhdm_request.response);

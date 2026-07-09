@@ -141,6 +141,42 @@ void process_reap_zombies(void)
     }
 }
 
+int process_waitpid(
+	proc_t *parent,
+	i64 target_pid,
+	int *exit_code_out
+){
+    proc_t *cur       = proc_zombies;
+    proc_t *prev      = NULL;
+
+    while (cur)
+    {
+        int pid_match = (target_pid == -1)    || ((u64)target_pid == cur->pid);
+
+        if (pid_match)
+        {
+            if (exit_code_out) *exit_code_out  = cur->exit_code;
+
+            // unlink zombie lst
+            if (prev)prev->next = cur->next;
+            else proc_zombies   = cur->next;
+
+            // free
+            if (cur->space && cur->space != vmm_get_kernel_space())
+                vmm_space_destroy(cur->space);
+
+            cur->state     = PROC_DEAD;
+            kfree((u64 *)cur);
+            return 0;
+        }
+
+        prev   = cur;
+        cur    = cur->next;
+    }
+
+    return -1;
+}
+
 void process_destroy(proc_t *p)
 {
     if (!p) return;
