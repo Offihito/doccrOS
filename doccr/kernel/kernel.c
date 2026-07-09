@@ -83,10 +83,10 @@ void _start(void)
     draw_logo();
 
     {
-        // Initialize the CPU
         cpu_detect();
         log("[CPU]", "Detected CPU\n");
         cpu_early_init();
+        vmm_cow_install_handler();
         timer_init(1000);
         timer_set_boot_time(); //for uptime command
     }

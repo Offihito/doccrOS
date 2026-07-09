@@ -32,6 +32,8 @@ syscall_entry:
     push r11
     push qword 0x23
     push rcx
+    push qword 0
+    push qword 57
 
     push rax
     push rbx
@@ -68,13 +70,53 @@ syscall_entry:
     pop rbx
     pop rax
 
-    pop rcx        
-    add rsp, 8     
-    pop r11       
-    add rsp, 8     
+    add rsp, 16
+    pop rcx
+    add rsp, 8
+    pop r11
+    add rsp, 16
 
     cli
     mov rsp, [syscall_scratch + 0]
+    o64 sysret
+
+%define FORK_R15     88
+%define FORK_R14     96
+%define FORK_R13    104
+%define FORK_R12    112
+%define FORK_R11    120
+%define FORK_R10    128
+%define FORK_R9     136
+%define FORK_R8     144
+%define FORK_RBP    152
+%define FORK_RDI    160
+%define FORK_RSI    168
+%define FORK_RDX    176
+%define FORK_RCX    184
+%define FORK_RBX    192
+%define FORK_RAX    200
+%define FORK_RIP    208
+%define FORK_RFLAGS 216
+%define FORK_RSP    224
+
+global fork_child_return
+fork_child_return:
+    mov rcx, [r15 + FORK_RIP]
+    mov r11, [r15 + FORK_RFLAGS]
+    mov rsp, [r15 + FORK_RSP]
+    mov rax, [r15 + FORK_RAX]
+    mov rbx, [r15 + FORK_RBX]
+    mov rdx, [r15 + FORK_RDX]
+    mov rsi, [r15 + FORK_RSI]
+    mov rdi, [r15 + FORK_RDI]
+    mov rbp, [r15 + FORK_RBP]
+    mov r8,  [r15 + FORK_R8]
+    mov r9,  [r15 + FORK_R9]
+    mov r10, [r15 + FORK_R10]
+    mov r12, [r15 + FORK_R12]
+    mov r13, [r15 + FORK_R13]
+    mov r14, [r15 + FORK_R14]
+    mov r15, [r15 + FORK_R15]
     o64 sysret
 
 syscall_common_stub:

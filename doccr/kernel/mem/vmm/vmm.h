@@ -75,7 +75,7 @@ vmm_region_t *vmm_space_find(vmm_space_t *space, u64 vaddr);
 
 vmm_space_t  *vmm_clone_space(vmm_space_t *src);
 void          vmm_cow_break(vmm_space_t *space, u64 fault_addr);
-void          vmm_cow_install_handler(vmm_space_t **current_space_ptr);
+void          vmm_cow_install_handler(void);
 
 u64           vmm_map_phys(vmm_space_t *space, u64 vaddr, u64 phys_addr, u64 page_count, u32 flags);
 void          vmm_unmap_phys(vmm_space_t *space, u64 vaddr);

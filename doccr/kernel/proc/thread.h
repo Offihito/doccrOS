@@ -35,21 +35,40 @@ typedef struct thread {
     char    name[THREAD_NAME_MAX];
     thread_state_t  state;
 
-    u64    rsp;         //saved stack ptr,
-                        // only meaningful when NOT running
+    u64    rsp;
     u8     *stack_base;
     u64    stack_size;
 
     int    is_user;
-    u64    kstack_top; //TSS.rsp0
+    u64    kstack_top;
 
-    struct proc    *owner;           // which proc
-    struct thread    *proc_next;     // next thread in the same proc
-    struct thread    *sched_next;    // scratch link for  sched
+    u64    fork_user_r15;
+    u64    fork_user_r14;
+    u64    fork_user_r13;
+    u64    fork_user_r12;
+    u64    fork_user_r11;
+    u64    fork_user_r10;
+    u64    fork_user_r9;
+    u64    fork_user_r8;
+    u64    fork_user_rbp;
+    u64    fork_user_rdi;
+    u64    fork_user_rsi;
+    u64    fork_user_rdx;
+    u64    fork_user_rcx;
+    u64    fork_user_rbx;
+    u64    fork_user_rax;
+    u64    fork_user_rip;
+    u64    fork_user_rflags;
+    u64    fork_user_rsp;
+
+    struct proc    *owner;
+    struct thread    *proc_next;
+    struct thread    *sched_next;
 } thread_t;
 
 void   thread_subsystem_init(void);
 void   thread_destroy(thread_t *t);
+u64    thread_alloc_tid(void);
 
 thread_t *thread_create(struct proc *owner, const char *name, thread_entry_t entry, void *arg);
 thread_t *thread_create_user(struct proc *owner, const char *name, thread_entry_t entry,void *arg, u64 user_stack_top);

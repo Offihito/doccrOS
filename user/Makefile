@@ -5,7 +5,7 @@
 #
 # FILE: Makefile
 # CREATED BY: emex
-# MODIFIED BY: --
+# MODIFIED BY: Offihito
 #
 #
 
@@ -14,9 +14,17 @@ all:
 
 	@$(MAKE) -C bin/hello
 
+	@$(MAKE) -C bin/fork_test
+
+	@$(MAKE) -C bin/syscall_test
+
 clean:
 	@$(MAKE) -C libc clean
 
 	@$(MAKE) -C bin/hello clean
+
+	@$(MAKE) -C bin/fork_test clean
+
+	@$(MAKE) -C bin/syscall_test clean
 
 .PHONY: all clean

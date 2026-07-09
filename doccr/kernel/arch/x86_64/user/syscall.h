@@ -16,11 +16,14 @@
 #include <types.h>
 #include "../idt/idt.h"
 
-#define SYS_EXIT       0
+#define SYS_READ       0
 #define SYS_WRITE      1
-#define SYS_READ       2
-#define SYS_YIELD      3
-#define SYS_GETPID     4
+#define SYS_OPEN       2
+#define SYS_CLOSE      3
+#define SYS_FORK       57
+#define SYS_EXIT       60
+#define SYS_GETPID     39
+#define SYS_YIELD      24
 
 #define MSR_EFER       0xC0000080
 #define MSR_STAR       0xC0000081
