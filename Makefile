@@ -50,13 +50,17 @@ disk:
 	@qemu-img create -f raw $(DISK_IMG) 256M
 	@echo "[DISK] created $(DISK_IMG)"
 
+build_num:
+	@chmod +x tools/build_num.sh
+	@./tools/build_num.sh
+
 # Kernel binary
 $(BUILD_DIR)/kernel.elf: $(ARCH_DIR)/linker.ld $(OBJS)
 	@mkdir -p $(dir $@)
 	$(VLD) $(LDFLAGS) -T $< $(OBJS) -o $@
 
 # Create bootable ISO
-$(ISO): limine.conf $(BUILD_DIR)/kernel.elf disk userspace
+$(ISO): limine.conf build_num $(BUILD_DIR)/kernel.elf disk userspace
 	@echo "[ISO] Creating bootable image..."
 	@rm -rf $(ISODIR)
 	@mkdir -p $(ISODIR)/boot/limine $(ISODIR)/EFI/BOOT

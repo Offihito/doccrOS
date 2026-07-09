@@ -1,0 +1,47 @@
+#!/bin/bash
+
+BUILD_FILE=".build"
+OUT_FILE="doccr/build.h"
+
+# build nummer
+if [ -f "$BUILD_FILE" ]; then
+    n=$(cat "$BUILD_FILE")
+else
+    n=0
+fi
+
+n=$((n+1))
+echo $n > "$BUILD_FILE"
+
+# date
+YEAR=$(date +%y)
+MONTH_STR=$(date +%b)
+DAY=$(date +%d)
+
+# month mapping
+case $MONTH_STR in
+    Jan) M="JY" ;;
+    Feb) M="FY" ;;
+    Mar) M="MH" ;;
+    Apr) M="AL" ;;
+    May) M="MY" ;;
+    Jun) M="JE" ;;
+    Jul) M="JY" ;;
+    Aug) M="AT" ;;
+    Sep) M="SR" ;;
+    Oct) M="OR" ;;
+    Nov) M="NR" ;;
+    Dec) M="DR" ;;
+esac
+#                  VER
+BUILD="${YEAR}${M}.0-7.${n}"
+
+echo "[BUILDGEN] build = $BUILD"
+
+# header schreiben
+cat > "$OUT_FILE" <<EOF
+#pragma once
+// this file will always be regenerated when building emexOS
+// if you want to disable it goto /tools/genbuild.sh
+#define ___EMEX_BUILD "$BUILD"
+EOF

@@ -1,4 +1,3 @@
-
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -16,7 +15,10 @@
 #include <kernel/arch/x86_64/gdt/gdt.h>
 #include <kernel/mem/vmm/vmm.h>
 #include <kernel/proc/thread.h>
+#include <kernel/proc/process.h>
+#include <kernel/proc/scheduler.h>
 #include <kernel/screen/lib/print.h>
+#include <kernel/arch/x86_64/drivers/ps2/keyboard/keyboard.h>
 
 u64 syscall_scratch[2];
 
@@ -71,25 +73,75 @@ void syscall_dispatch(cpu_state_t *state)
 {
     u64 num = state->rax;
 
-    if (num == SYS_EXIT)
+    /*if (num == SYS_EXIT)
     {
         thread_exit();
-    }
+    }*/
 
     switch (num)
     {
+
+    // TODO:
+    // move that shit to other files mate!!
+        case SYS_EXIT:
+        {
+            thread_exit();
+            break;
+        }
+
         case SYS_WRITE:
         {
-            const char *buf = (const char *)state->rdi;
-            u64 len         = state->rsi;
+            u64 fd  = state->rdi;
+            const char *buf = (const char *)state->rsi;
+            u64 len  = state->rdx;
 
-            if (user_ptr_ok((u64)buf))
+            if ((fd == 1 || fd == 2) && user_ptr_ok((u64)buf))
             {
-                for (u64 i = 0; i < len && buf[i]; i++)
-                    putchar(buf[i], white());
+                for (u64 i = 0; i < len; i++) putchar(buf[i], white());
+                state->rax = len;
             }
+            else
+            {
+                state->rax = (u64)-1;
+            }
+            break;
+        }
 
-            state->rax = len;
+        case SYS_READ:
+        {
+            u64 fd  = state->rdi;
+            char *buf = (char *)state->rsi;
+            u64 len = state->rdx;
+
+            //TODO:
+            // then from /dev/input/keyboard
+            if (fd == 0 && user_ptr_ok((u64)buf))
+            {
+                u64 n = 0;
+                while (n < len && keyboard_has_key())
+                    buf[n++] = keyboard_get_key();
+                state->rax = n;
+            }
+            else
+            {
+                state->rax = (u64)-1;
+            }
+            break;
+        }
+
+        case SYS_YIELD:
+        {
+            sched_yield();
+
+            state->rax  = 0;
+            break;
+        }
+
+        case SYS_GETPID:
+        {
+            proc_t *p = process_get_current();
+
+            state->rax = p ? p->pid : (u64)-1;
             break;
         }
 

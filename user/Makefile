@@ -10,13 +10,13 @@
 #
 
 all:
-#@$(MAKE) -C libc
+	@$(MAKE) -C libc
 
-#@$(MAKE) -C bin/hello
+	@$(MAKE) -C bin/hello
 
 clean:
-#@$(MAKE) -C libc clean
+	@$(MAKE) -C libc clean
 
-#@$(MAKE) -C bin/hello clean
+	@$(MAKE) -C bin/hello clean
 
 .PHONY: all clean

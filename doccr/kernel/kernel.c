@@ -40,7 +40,6 @@
 #include <kernel/proc/process.h>
 #include <kernel/proc/thread.h>
 #include <kernel/proc/demo_threads.h>
-#include <kernel/proc/user_demo.h>
 #include <kernel/proc/scheduler.h>
 
 // modules
@@ -50,8 +49,8 @@
 // File system
 #include <kernel/fs/vfs/vfs.h>
 
-// Shell
-#include <kernel/kshell/kshell.h>
+// User
+#include <kernel/user/init.h>
 
 void _start(void)
 {
@@ -104,7 +103,7 @@ void _start(void)
     thread_create(kproc, "worker-2",     worker_fn,     (void*)(u64)2);
     thread_create(kproc, "worker-3",     worker_fn,     (void*)(u64)3);
 
-    g_debug_canary_thread = t_idle;
+    //g_debug_canary_thread = t_idle;
 
 
     sched_enable();
@@ -115,8 +114,6 @@ void _start(void)
 
     devices_init();
     kernel_devices_init();
-
-    kshell_init(kproc);
 
     user_start();
 
