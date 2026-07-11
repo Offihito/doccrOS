@@ -14,12 +14,16 @@
 #include "lib/print.h"
 #include <kernel/screen/font_8x8.h>
 #include <kernel/screen/bootscreen/boot.h>
+#include <kernel/limine/reqs.h>
 
 //donnot put static before the uints!
 u32 *framebuffer = NULL;
 u32 fb_width = 0;
 u32 fb_height = 0;
 u32 fb_pitch = 0;
+u32 fb_bpp  = 0;
+u64 fb_size = 0;
+u64 fb_phys_addr = 0;
 u32 cursor_x = 20;
 u32 cursor_y = 20;
 u32 font_scale = 2; //for console scalin g
@@ -31,6 +35,14 @@ void graphics_init(struct limine_framebuffer *fb)
     fb_width = fb->width;
     fb_height = fb->height;
     fb_pitch = fb->pitch;
+    fb_bpp = fb->bpp;
+    fb_size = (u64)fb_pitch * fb_height;
+
+    // hhdm response is already filled in by limine atp
+    // even though physmem/paging havent run yet
+    u64 hhdm_offset = hhdm_request.response ? hhdm_request.response->offset : 0;
+    fb_phys_addr = (u64)framebuffer - hhdm_offset;
+
     cursor_y = 20;
     font_scale = 1;
 
@@ -102,6 +114,18 @@ u32* get_framebuffer(void){
 
 u32 get_fb_pitch(void){
     return fb_pitch;
+}
+
+u32 get_fb_bpp(void){
+    return fb_bpp;
+}
+
+u64 get_fb_size(void){
+    return fb_size;
+}
+
+u64 get_fb_phys_addr(void){
+    return fb_phys_addr;
 }
 
 void graphics_set_font_scale(u32 scale) {

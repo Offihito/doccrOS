@@ -14,6 +14,7 @@
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
 #include <kernel/screen/colors.h>
+#include <kernel/fs/vfs/vfs.h>
 
 
 static device_handler *devices[DEVICES_MAX_AMOUNT];
@@ -55,6 +56,20 @@ int device_register(device_handler *device)
             return -1; /* don't add module if init fails */
         }
     }
+    if (device->mount)
+    {
+        vfs_node_t *node = vfs_create_device(device->mount, device);
+        if (!node)
+        {
+            log(
+            	"[DEV]",
+             	"could not create vfs node for device, skipping registration\n",
+              	warning
+            );
+            if (device->fini) device->fini();
+            return -1;
+        }
+    }
 
     devices[device_count++] = device;
     return 0;
@@ -69,8 +84,14 @@ void device_unregister(const char *name)
 	    if (devices[i] && devices[i]->name && str_equals(devices[i]->name, name))
 		{
 	        // call cleanup if exists
-	        if (devices[i]->fini) {
+	        if (devices[i]->fini)
+			{
 	            devices[i]->fini();
+	        }
+
+	        if (devices[i]->mount)
+			{
+	            vfs_remove(devices[i]->mount);
 	        }
 
 	        // shift array down

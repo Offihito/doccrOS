@@ -16,6 +16,7 @@
 #include "sys_fs.h"
 #include "sys_process.h"
 #include "sys_mem.h"
+#include "sys_ioctl.h"
 
 
 #include <kernel/arch/x86_64/idt/idt.h>
@@ -74,6 +75,7 @@ void syscall_dispatch(cpu_state_t *state)
 	    case SYS_WRITE:        sys_write(state);        break;
 	    case SYS_OPEN:         sys_open(state);         break;
 	    case SYS_CLOSE:        sys_close(state);        break;
+	    case SYS_IOCTL:        sys_ioctl(state);        break;
 	    case SYS_LSEEK:        sys_lseek(state);        break;
 	    case SYS_MMAP:         sys_mmap(state);         break;
 	    case SYS_MUNMAP:       sys_munmap(state);       break;

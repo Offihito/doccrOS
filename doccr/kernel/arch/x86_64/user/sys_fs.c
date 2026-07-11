@@ -13,6 +13,7 @@
 #include "sys_fs.h"
 #include <kernel/proc/process.h>
 #include <kernel/fs/vfs/vfs.h>
+#include <kernel/devices/device_init.h>
 
 static int user_ptr_ok(u64 ptr)
 {
@@ -50,9 +51,17 @@ void sys_open(cpu_state_t *state)
     {
         if (!p->fd_table[fd].used)
         {
-            p->fd_table[fd].node   = node;
-            p->fd_table[fd].offset = 0;
-            p->fd_table[fd].used   = 1;
+            void *handle   = NULL;
+
+            if (node->type == VFS_DEVICE && node->device && node->device->open)
+            {
+                handle     = node->device->open(path);
+            }
+
+            p->fd_table[fd].node    = node;
+            p->fd_table[fd].offset  = 0;
+            p->fd_table[fd].used    = 1;
+            p->fd_table[fd].device_handle = handle;
             state->rax = (u64)fd;
             return;
         }
@@ -84,9 +93,16 @@ void sys_close(cpu_state_t *state)
         return;
     }
 
-    p->fd_table[fd].node   = NULL;
-    p->fd_table[fd].offset = 0;
-    p->fd_table[fd].used   = 0;
+    vfs_node_t *node        = p->fd_table[fd].node;
+    if (node && node->type  == VFS_DEVICE && node->device && node->device->close)
+    {
+        node->device->close(p->fd_table[fd].device_handle);
+    }
+
+    p->fd_table[fd].node    = NULL;
+    p->fd_table[fd].offset  = 0;
+    p->fd_table[fd].used    = 0;
+    p->fd_table[fd].device_handle = NULL;
 
     state->rax = 0;
 }

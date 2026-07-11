@@ -26,30 +26,32 @@
 
 void user_start(void)
 {
-    vfs_node_t *node = vfs_find(SYSTEM_PATH);
+	systeminit: {
+	 	vfs_node_t *node = vfs_find(SYSTEM_PATH);
 
-    if (!node) {
-        log("[USER]", "could not find " SYSTEM_PATH ", returning...\n", warning);
-        return;
-    }
+	    if (!node) {
+	        log("[USER]", "could not find " SYSTEM_PATH ", returning...\n", warning);
+	        return;
+	    }
 
-    if (node->type != VFS_FILE) {
-        log("[USER]", "path is not a file, returning...\n", warning);
-        return;
-    }
+	    if (node->type != VFS_FILE) {
+	        log("[USER]", "path is not a file, returning...\n", warning);
+	        return;
+	    }
 
-    if (!node->data || node->size == 0) {
-        log("[USER]", "system init is empty, returning...\n", warning);
-        return;
-    }
+	    if (!node->data || node->size == 0) {
+	        log("[USER]", "system init is empty, returning...\n", warning);
+	        return;
+	    }
 
-    printf("[USER] found, load '%s' <%llu bytes>\n", SYSTEM_PATH, node->size);
+	    printf("[USER] found, load '%s' <%llu bytes>\n", SYSTEM_PATH, node->size);
 
-    int rc = elf_load(node->data, node->size, SYSTEM_NAME);
-    if (rc != 0) {
-        log("[USER]", "could not load emxrc...\n", warning);
-        return;
-    }
+	    int rc = elf_load(node->data, node->size, SYSTEM_NAME);
+	    if (rc != 0) {
+	        log("[USER]", "could not load emxrc...\n", warning);
+	        return;
+	    }
 
-    log("[USER]", "loading was a success!\n", success);
+	    log("[USER]", "loading was a success!\n", success);
+	};
 }

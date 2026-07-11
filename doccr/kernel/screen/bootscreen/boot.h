@@ -25,6 +25,12 @@
 
 #define BS_BUF_SIZE 4096 // per screen
 
+// biggest resolution bothered reserving
+// clamp it down if its bigger
+#define BS_MAX_WIDTH    1920
+#define BS_MAX_HEIGHT    1080
+#define BS_MAX_PIXELS    (BS_MAX_WIDTH * BS_MAX_HEIGHT)
+
 typedef struct
 {
     char    *buffer;   // the layout
@@ -37,6 +43,10 @@ typedef struct
     u32     width, height; // to right down corner
 
     u32     visible; // when 0 it doesnt bother drawing
+
+    u32     *pixels;      // this screens very own backbuffer, one u32 per pixel
+    u32     pixel_count;  // width * height, cached so we dont keep remultiplying it
+
 } bs_screen_t;
 
 // so we have bs. namespace
@@ -49,6 +59,7 @@ typedef struct
     void  (*ScreensVisible)(int screen, int on);
     void  (*Print)(const char *str, u32 color);
     void  (*Putchar)(char c, u32 color);
+    void  (*Putpixel)(u32 x, u32 y, u32 color);
     void  (*Clear)(int screen);
 
 } bootscreen_api_t;

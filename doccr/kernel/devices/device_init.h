@@ -31,8 +31,10 @@ typedef struct device_handler {
     // not used just for the file system in future
     //
     void *(*open)(const char *path);
+    void (*close)(void *handle);
     int (*read)(void *handle, void *buf, size_t count);
     int (*write)(void *handle, const void *buf, size_t count);
+    i64 (*ioctl)(void *handle, u64 request, void *arg);
 
 } device_handler;
 

@@ -7,6 +7,7 @@
 #define SYS_WRITE         1
 #define SYS_OPEN          2
 #define SYS_CLOSE         3
+#define SYS_IOCTL        16
 #define SYS_FORK         57
 #define SYS_EXIT         60
 #define SYS_GETPID       39
@@ -30,6 +31,7 @@ long write(int fd, const void *buf, size_t count);
 long read(int fd, void *buf, size_t count);
 long open(const char *path, int flags);
 long close(int fd);
+long ioctl(int fd, unsigned long request, void *arg);
 long lseek(int fd, long offset, int whence);
 long getpid(void);
 long fork(void);

@@ -70,6 +70,7 @@ vfs_node_t *vfs_create_node(vfs_node_t *parent, const char *name, vfs_type_t typ
     n->data     = NULL;
     n->size     = 0;
     n->capacity = 0;
+    n->device   = NULL;
 
     parent->children[parent->child_count++] = n;
 /*
@@ -167,10 +168,8 @@ vfs_node_t *vfs_mkdir(const char *path)
     return cur;
 }
 
-vfs_node_t *vfs_create_file(const char *path)
+static void vfs_split_path(const char *path, char *dirpath_out, char *fname_out)
 {
-    if (!vfs_root || !path) return NULL;
-
     int len = str_len(path);
     int last_slash = -1;
 
@@ -179,23 +178,29 @@ vfs_node_t *vfs_create_file(const char *path)
         if (path[i] == '/') last_slash = i;
     }
 
-    char dirpath[VFS_MAX_PATH];
-    char fname[VFS_NAME_MAX];
-
     if (last_slash < 0)
     {
-        str_copy(dirpath, "/");
-        str_copy(fname, path);
+        str_copy(dirpath_out, "/");
+        str_copy(fname_out, path);
     } else if (last_slash == 0)
     {
-        str_copy(dirpath, "/");
-        str_copy(fname, path + 1);
+        str_copy(dirpath_out, "/");
+        str_copy(fname_out, path + 1);
     } else {
         int i = 0;
-        for (; i < last_slash && i < VFS_MAX_PATH - 1; i++) dirpath[i] = path[i];
-        dirpath[i] = '\0';
-        str_copy(fname, path + last_slash + 1);
+        for (; i < last_slash && i < VFS_MAX_PATH - 1; i++) dirpath_out[i] = path[i];
+        dirpath_out[i] = '\0';
+        str_copy(fname_out, path + last_slash + 1);
     }
+}
+
+vfs_node_t *vfs_create_file(const char *path)
+{
+    if (!vfs_root || !path) return NULL;
+
+    char dirpath[VFS_MAX_PATH];
+    char fname[VFS_NAME_MAX];
+    vfs_split_path(path, dirpath, fname);
 
     if (fname[0] == '\0') return NULL;
 
@@ -204,6 +209,27 @@ vfs_node_t *vfs_create_file(const char *path)
     if (!dir) return NULL;
 
     return vfs_create_node(dir, fname, VFS_FILE);
+}
+
+vfs_node_t *vfs_create_device(const char *path, struct device_handler *device)
+{
+    if (!vfs_root    || !path  || !device) return NULL;
+
+    char dirpath[VFS_MAX_PATH];
+    char fname[VFS_NAME_MAX];
+    vfs_split_path(path, dirpath, fname);
+
+    if (fname[0]     == '\0') return NULL;
+
+    vfs_node_t *dir  = vfs_find(dirpath);
+    if (!dir) dir    = vfs_mkdir(dirpath);
+    if (!dir) return NULL;
+
+    vfs_node_t *node = vfs_create_node(dir, fname, VFS_DEVICE);
+    if (!node) return NULL;
+
+    node->device     = device;
+    return node;
 }
 
 int vfs_remove(const char *path)
@@ -325,6 +351,10 @@ void vfs_list(vfs_node_t *dir)
         {
             print(c->name, cyan());
             print("/\n", cyan());
+        } else if (c->type == VFS_DEVICE)
+        {
+            print(c->name, yellow());
+            print("\n", yellow());
         } else
         {
             print(c->name, white());

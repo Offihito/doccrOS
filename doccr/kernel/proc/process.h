@@ -21,10 +21,17 @@
 
 #define FD_MAX 64
 
+#define CAP_FRAMEBUFFER    (1ULL << 0)
+#define CAP_INPUT          (1ULL << 1)
+#define CAP_AUDIO          (1ULL << 2)
+#define CAP_NETWORK        (1ULL << 3)
+
 typedef struct {
     vfs_node_t *node;
     u64         offset;
     int         used;
+    void        *device_handle; //return by device->open()
+    // for VFS_DEVICE nodes
 } file_descriptor_t;
 
 typedef enum {
@@ -46,6 +53,8 @@ typedef struct proc
 
     u64      heap_break;
 
+    u64      capabilities;
+
     vmm_space_t  *space;
 
     thread_t     *threads;
@@ -66,8 +75,12 @@ proc_t *process_get_current(void);
 proc_t *process_fork(cpu_state_t *parent_state);
 
 int process_waitpid(proc_t *parent, i64 target_pid, int *exit_code_out);
+int process_has_cap(proc_t *p, u64 cap);
 
 void process_exit(proc_t *p, int exit_code);
 void process_reap_zombies(void);
+
+void process_grant_cap(proc_t *p, u64 cap);
+void process_revoke_cap(proc_t *p, u64 cap);
 
 #endif

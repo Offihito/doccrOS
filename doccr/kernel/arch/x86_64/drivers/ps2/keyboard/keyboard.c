@@ -1,4 +1,3 @@
-
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -171,13 +170,16 @@ static void keyboard_module_fini(void)
     keyboard_fini();
 }
 
-device_handler keyboard_module = {
-    .name    = "ps2_keyboard",
-    .mount   = "/dev/keyboard",
-    .version = VERSION_NUM(1, 0, 0, 0),
+device_handler keyboard_module =
+{
+    .name    = KBD_NAME,
+    .mount   = KBD_MOUNT,
+    .version = KBD_VERSION,
     .init    = keyboard_module_init,
     .fini    = keyboard_module_fini,
     .open    = NULL,
+    .close   = NULL,
     .read    = NULL,
     .write   = NULL,
+    .ioctl   = NULL,
 };

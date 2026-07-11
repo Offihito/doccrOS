@@ -70,6 +70,11 @@ long close(int fd)
     return syscall3(SYS_CLOSE, fd, 0, 0);
 }
 
+long ioctl(int fd, unsigned long request, void *arg)
+{
+    return syscall3(SYS_IOCTL, fd, (long)request, (long)arg);
+}
+
 long getpid(void)
 {
     return syscall3(SYS_GETPID, 0, 0, 0);

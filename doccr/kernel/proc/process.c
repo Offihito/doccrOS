@@ -52,6 +52,7 @@ static proc_t *proc_alloc(const char *name)
     p->threads = NULL;
     p->thread_count = 0;
     p->alive_count  = 0;
+    p->capabilities = 0;
     p->next = head;
 
     p->fd_table[0].used = 1;
@@ -336,4 +337,22 @@ proc_t *process_fork(cpu_state_t *parent_state)
     sched_add(ct);
 
     return child;
+}
+
+int process_has_cap(proc_t *p, u64 cap)
+{
+    if (!p) return 0;
+    return (p->capabilities & cap) == cap;
+}
+
+void process_grant_cap(proc_t *p, u64 cap)
+{
+    if (!p) return;
+    p->capabilities |= cap;
+}
+
+void process_revoke_cap(proc_t *p, u64 cap)
+{
+    if (!p) return;
+    p->capabilities &= ~cap;
 }

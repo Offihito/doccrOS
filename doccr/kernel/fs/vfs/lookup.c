@@ -31,7 +31,11 @@ static void dump_node(vfs_node_t *node, int depth)
         for (int i = 0; i < node->child_count; i++) {
             dump_node(node->children[i], depth + 1);
         }
-    } else {
+    } else if (node->type == VFS_DEVICE)
+    {
+        printf("%s (device)\n", node->name);
+    } else
+    {
         printf("%s (%llu bytes)\n", node->name, node->size);
     }
 }
@@ -39,7 +43,8 @@ static void dump_node(vfs_node_t *node, int depth)
 void vfs_dump(void)
 {
     vfs_node_t *root = vfs_get_root();
-    if (!root) {
+    if (!root)
+    {
         printf("[VFS] tree is empty, theres literally nothing to dump\n");
         return;
     }
