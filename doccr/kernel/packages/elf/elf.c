@@ -86,7 +86,7 @@ static int elf_check(const u8 *data, u64 size)
 #define USER_STACK_TOP   0x00007FFFFFFFE000ULL
 #define USER_STACK_BASE  (USER_STACK_TOP - USER_STACK_PAGES * 4096ULL)
 
-int elf_load(const u8 *data, u64 size, const char *name)
+int elf_load(const u8 *data, u64 size, const char *name, u64 initial_caps)
 {
     if (!data || size == 0)
     {
@@ -109,7 +109,7 @@ int elf_load(const u8 *data, u64 size, const char *name)
         (u32)eh->e_phnum
     );
 
-    proc_t *p = process_create_user(name);
+    proc_t *p = process_create_user(name, initial_caps);
     if (!p)
     {
         printf("[ELF] process_create_user failed\n");

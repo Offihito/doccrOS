@@ -85,12 +85,14 @@ proc_t *process_create(const char *name)
     return p;
 }
 
-proc_t *process_create_user(const char *name)
+proc_t *process_create_user(const char *name, u64 initial_caps)
 {
     proc_t *p = proc_alloc(name);
     if (!p) return NULL;
 
+    p->capabilities = initial_caps;
     p->space = vmm_space_create();
+
     if (!p->space)
     {
         head = p->next;

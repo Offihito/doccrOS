@@ -69,6 +69,29 @@ static void bs_flush_rect(bs_screen_t *scr, u32 x, u32 y, u32 w, u32 h)
     if (end_x > scr->width)  end_x = scr->width;
     if (end_y > scr->height) end_y = scr->height;
 
+    u32    *fb   = get_framebuffer();
+    u32    fb_w  = get_fb_width();
+    u32    fb_h  = get_fb_height();
+    u32    fb_stride = get_fb_pitch() / 4;
+
+    if (
+    	fb &&
+     	scr->x == 0          &&
+      	scr->y == 0          &&
+       	scr->width == fb_w   &&
+        scr->height == fb_h
+    ) {
+        for (u32 yy = y; yy < end_y; yy++)
+        {
+            memcpy(
+            	&fb[yy * fb_stride + x],
+             	&scr->pixels[yy * scr->width + x],
+              	(end_x - x) * sizeof(u32)
+            );
+        }
+        return;
+    }
+
     for (u32 yy = y; yy < end_y; yy++)
     {
         for (u32 xx = x; xx < end_x; xx++)
@@ -226,6 +249,15 @@ static void bs_clear(int screen)
     if (scr->buffer) scr->buffer[0] = '\0';
 }
 
+static void bs_flush_screen(int screen)
+{
+    if (
+    	screen < 0 || screen >= BS_COUNT
+    ) return;
+
+    bs_flush(&bs.Screens[screen]);
+}
+
 static void bs_init(void)
 {
     memset(bs.Screens, 0, sizeof(bs.Screens));
@@ -241,6 +273,7 @@ void bootscreen_setup(void)
     bs.Putchar            = bs_putchar;
     bs.Clear              = bs_clear;
     bs.Putpixel           = bs_putpixel;
+    bs.Flush              = bs_flush_screen;
 
     bs.Init();
 }

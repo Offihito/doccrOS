@@ -56,6 +56,11 @@ void sys_open(cpu_state_t *state)
             if (node->type == VFS_DEVICE && node->device && node->device->open)
             {
                 handle     = node->device->open(path);
+                if (!handle)
+                {
+                    state->rax = (u64)-1;
+                    return;
+                }
             }
 
             p->fd_table[fd].node    = node;

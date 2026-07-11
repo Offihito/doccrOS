@@ -62,6 +62,6 @@ typedef struct
     u64     p_align;
 } __attribute__((packed)) elf64_phdr_t;
 
-int elf_load(const u8 *data, u64 size, const char *name);
+int elf_load(const u8 *data, u64 size, const char *name, u64 initial_caps);
 
 #endif

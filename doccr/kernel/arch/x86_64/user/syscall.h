@@ -35,6 +35,9 @@
 #define SYS_UNLINK         87
 #define SYS_GETUID        102
 #define SYS_GETGID        104
+// TODO:
+// SYS_EXEC, SYS_SPAWN then here exec/spawn path.
+// dont forget the CAP system then!!
 
 #define MSR_EFER       0xC0000080
 #define MSR_STAR       0xC0000081

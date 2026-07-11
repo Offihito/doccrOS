@@ -46,6 +46,7 @@ typedef struct
 
     u32     *pixels;      // this screens very own backbuffer, one u32 per pixel
     u32     pixel_count;  // width * height, cached so we dont keep remultiplying it
+    u64     pixels_phys;
 
 } bs_screen_t;
 
@@ -61,6 +62,7 @@ typedef struct
     void  (*Putchar)(char c, u32 color);
     void  (*Putpixel)(u32 x, u32 y, u32 color);
     void  (*Clear)(int screen);
+    void  (*Flush)(int screen);
 
 } bootscreen_api_t;
 
@@ -68,5 +70,6 @@ extern bootscreen_api_t bs;
 
 void bootscreen_setup(void);
 void bootscreen_layout_init(void);
+void bootscreen_bs3_init_backbuffer(void);
 
 #endif

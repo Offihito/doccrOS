@@ -80,6 +80,8 @@ void _start(void)
         vmm_init();
     }
 
+    bootscreen_bs3_init_backbuffer();
+
     draw_logo();
 
     {

@@ -70,7 +70,7 @@ void process_init(void);
 void process_destroy(proc_t *p);
 
 proc_t *process_create(const char *name);
-proc_t *process_create_user(const char *name);
+proc_t *process_create_user(const char *name, u64 initial_caps);
 proc_t *process_get_current(void);
 proc_t *process_fork(cpu_state_t *parent_state);
 

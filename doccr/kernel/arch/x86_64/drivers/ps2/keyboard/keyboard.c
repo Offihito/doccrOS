@@ -14,6 +14,7 @@
 #include <kernel/arch/hal/ports.h>
 #include <kernel/screen/bootscreen/boot.h>
 #include <kernel/screen/colors.h>
+#include <kernel/devices/names.h>
 
 #define PS2_DATA    0x60
 #define PS2_STATUS  0x64

@@ -12,6 +12,9 @@
 
 #include "boot.h"
 #include <kernel/screen/graphics.h>
+#include <kernel/mem/lib.h>
+#include <kernel/mem/phys/physmem.h>
+#include <kernel/mem/paging/paging.h>
 
 static char bs_buf_bs1[BS_BUF_SIZE];
 static char bs_buf_bs2[BS_BUF_SIZE];
@@ -51,6 +54,7 @@ static void bs_setup_screen
     bs.Screens[screen].width       = width;
     bs.Screens[screen].height      = height;
     bs.Screens[screen].pixels      = pixels;
+    bs.Screens[screen].pixels_phys = 0;
     bs.Screens[screen].pixel_count = width * height;
 }
 
@@ -91,7 +95,7 @@ void bootscreen_layout_init(void)
     // BS3 whole screen for fb0 device
     bs_setup_screen(
     	BS3,
-     	bs_pix_bs3,
+     	NULL,
       	bs_buf_bs3,
        	0,
         0,
@@ -111,4 +115,36 @@ void bootscreen_layout_init(void)
     );
 
     bs.SwitchScreen(BS1);
+}
+
+void bootscreen_bs3_init_backbuffer(void)
+{
+    bs_screen_t *scr  = &bs.Screens[BS3];
+
+    u64 size  = (u64)scr->width * scr->height * sizeof(u32);
+    u64 page_count    = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+
+    u64 phys  = physmem_alloc_to(page_count);
+    if (!phys)
+    {
+        log(
+        	"[BOOT]",
+         	"could not allocate BS3 backbuffer, fb0 will stay unavailable\n",
+          	warning
+        );
+        return;
+    }
+
+    u64 hhdm  = paging_get_hhdm_offset();
+
+    scr->pixels      = (u32 *)(phys + hhdm);
+    scr->pixels_phys = phys;
+
+    memset(
+    	scr->pixels,
+     	0,
+      	page_count * PAGE_SIZE
+    );
+
+    log("[BOOT]", "BS3 backbuffer ready\n", success);
 }

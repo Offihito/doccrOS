@@ -11,20 +11,16 @@
 
 all:
 	@$(MAKE) -C libc
-
 	@$(MAKE) -C bin/hello
-
 	@$(MAKE) -C bin/fork_test
-
 	@$(MAKE) -C bin/syscall_test
+	@$(MAKE) -C bin/test_graphics
 
 clean:
 	@$(MAKE) -C libc clean
-
 	@$(MAKE) -C bin/hello clean
-
 	@$(MAKE) -C bin/fork_test clean
-
 	@$(MAKE) -C bin/syscall_test clean
+	@$(MAKE) -C bin/test_graphics clean
 
 .PHONY: all clean
