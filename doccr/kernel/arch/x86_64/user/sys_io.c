@@ -12,7 +12,7 @@
 
 #include "sys_io.h"
 #include <kernel/screen/lib/print.h>
-#include <kernel/arch/x86_64/drivers/ps2/keyboard/keyboard.h>
+#include <kernel/devices/input/kbd.h>
 #include <kernel/communication/serial.h>
 #include <kernel/proc/process.h>
 #include <kernel/fs/vfs/vfs.h>
@@ -36,14 +36,9 @@ void sys_read(cpu_state_t *state)
         return;
     }
 
-    // TODO: route through /dev/input/keyboard
-    if (fd    == 0)
+    if (fd == 0)
     {
-        u64 n = 0;
-        while (
-        	n < len &&
-         	keyboard_has_key()) buf[n++] = keyboard_get_key();
-        state->rax = n;
+        state->rax = kbd_read_events(buf, len);
         return;
     }
 
