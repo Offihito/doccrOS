@@ -207,7 +207,7 @@ void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 
     {
         u64 pdpt_phys = physmem_alloc_to(1);
         if (!pdpt_phys) panic("paging_map_page_in: could not allocate PDPT");
-        printf("[PAGING] new PDPT frame=0x%llx\n", pdpt_phys);   // <-- neu
+
         pml4->entries[pml4_index] = (pdpt_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
         pdpt = (page_table_t *)(pdpt_phys + hhdm_offset);
         memset(pdpt, 0, PAGE_SIZE);
@@ -222,7 +222,7 @@ void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 
     {
         u64 pd_phys = physmem_alloc_to(1);
         if (!pd_phys) panic("paging_map_page_in: could not allocate PD");
-        printf("[PAGING] new PD frame=0x%llx\n", pd_phys);   // <-- neu
+
         pdpt->entries[pdp_index] = (pd_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
         pd = (page_table_t *)(pd_phys + hhdm_offset);
         memset(pd, 0, PAGE_SIZE);
@@ -237,7 +237,7 @@ void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 
     {
         u64 pt_phys = physmem_alloc_to(1);
         if (!pt_phys) panic("paging_map_page_in: could not allocate PT");
-        printf("[PAGING] new PT frame=0x%llx\n", pt_phys);   // <-- neu
+
         pd->entries[pd_index] = (pt_phys & 0x000FFFFFFFFFF000) | PTE_PRESENT | PTE_WRITABLE | PTE_USER;
         pt = (page_table_t *)(pt_phys + hhdm_offset);
         memset(pt, 0, PAGE_SIZE);
@@ -246,8 +246,6 @@ void paging_map_page_in(u64 pml4_phys, u64 virtual_addr, u64 physical_addr, u64 
     {
         pt = (page_table_t *)((pd->entries[pd_index] & 0x000FFFFFFFFFF000) + hhdm_offset);
     }
-
-    printf("[PAGING] mapping virt=0x%llx -> phys=0x%llx\n", virtual_addr, physical_addr); // <-- neu
 
     pt->entries[pt_index] = (physical_addr & 0x000FFFFFFFFFF000) | flags;
 

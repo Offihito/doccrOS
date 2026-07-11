@@ -130,17 +130,33 @@ void process_exit(proc_t *p, int exit_code)
 
 void process_reap_zombies(void)
 {
-    while (proc_zombies)
+    proc_t *cur  = proc_zombies;
+    proc_t *prev = NULL;
+
+    while (cur)
     {
-        proc_t *p     = proc_zombies;
-        proc_zombies  = p->next;
+        proc_t *next  = cur->next;
 
-        if (
-            p->space && p->space != vmm_get_kernel_space()
-        ) vmm_space_destroy(p->space); // pml4 + private frames
+        if (cur->thread_count == 0)
+        {
+            if (
+            	cur->space &&
+             	cur->space != vmm_get_kernel_space()
+            ) vmm_space_destroy(cur->space);
 
-        p->state      = PROC_DEAD;
-        kfree((u64 *)p);
+            cur->state = PROC_DEAD;
+
+            if (prev) prev->next = next;
+            else proc_zombies = next;
+
+            kfree((u64 *)cur);
+        }
+        else
+        {
+            prev = cur;
+        }
+
+        cur = next;
     }
 }
 
