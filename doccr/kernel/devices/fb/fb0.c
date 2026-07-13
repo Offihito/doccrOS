@@ -138,7 +138,7 @@ static i64 fb0_ioctl(void *handle, u64 request, void *arg)
             u64 phys = bs.Screens[BS3].pixels_phys;
             if (!phys) return -1;
 
-            u64 size       = (u64)get_fb_width() * get_fb_height() * sizeof(u32);
+            u64 size       = get_fb_pitch() * get_fb_height();
             u64 page_count = (size + PAGE_SIZE - 1) / PAGE_SIZE;
 
             u64 vaddr = vmm_map_phys(

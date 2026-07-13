@@ -1,11 +1,11 @@
 /*
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
- * Copyright (c) 2026 emex-foundation
+ * Copyright (c) 2026 doccrLabs
  *
  * FILE: gdt.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -14,10 +14,6 @@
 #include <kernel/screen/lib/string.h>
 #include <kernel/screen/lib/print.h>
 
-// The TSS descriptor is 16 bytes and occupies entries 5 and 6 (offsets 40–55).
-// GDT_ENTRIES must be exactly 7: entries 0-4 are regular 8-byte descriptors,
-// entries 5-6 form the 64-bit TSS descriptor. Fewer entries → overflow write;
-// more entries → gdt_ptr.limit would cover unused slots (harmless but wrong).
 _Static_assert(GDT_ENTRIES == 7,
     "GDT_ENTRIES must be 7: null + kcode + kdata + udata + ucode + TSS(lo) + TSS(hi)");
 
@@ -85,13 +81,13 @@ void gdt_init(void)
     gdt_set_gate( // kernel data Segment (0x10)
         2, 0, 0xFFFFF,
         GDT_PRESENT  | GDT_RING0     | GDT_CODE_DATA |                  GDT_RW,
-        GDT_GRANULAR | GDT_LONG_MODE
+        GDT_GRANULAR
     );
 
     gdt_set_gate( // user data Segment (0x18)
         3, 0, 0xFFFFF,
         GDT_PRESENT  | GDT_RING3     | GDT_CODE_DATA |                  GDT_RW,
-        GDT_GRANULAR | GDT_LONG_MODE
+        GDT_GRANULAR
     );
 
     gdt_set_gate( // user code Segment (0x20)

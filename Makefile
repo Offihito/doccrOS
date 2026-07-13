@@ -38,6 +38,7 @@ fetchDeps:
 	@echo "[DEPS] Fetching Limine"
 	@rm -rf $(LIMINE_DIR)
 	@git clone https://codeberg.org/Limine/Limine.git --branch=v11.x-binary --depth=1 $(LIMINE_DIR)
+	@make -C include/limine
 	@rm -rf $(LIMINE_DIR)/.git
 	@echo "[DEPS] Fetching Limine protocol header file"
 	@wget https://codeberg.org/Limine/limine-protocol/raw/branch/trunk/include/limine.h -O $(LIMINE_DIR)/limine.h
@@ -85,6 +86,7 @@ $(ISO): limine.conf build_num $(BUILD_DIR)/kernel.elf disk userspace
 		--efi-boot boot/limine/limine-uefi-cd.bin \
 		-efi-boot-part --efi-boot-image --protective-msdos-label \
 		$(ISODIR) -o $@ 2>/dev/null
+	$(LIMINE_TOOL) bios-install $@
 	@echo "------------------------"
 	@echo "[OK] $@ created"
 
@@ -132,5 +134,6 @@ $(BUILD_DIR)/%.asm.o: %.asm
 # Clean all build output
 clean:
 	@echo "[CLR] Cleaning..."
+	@$(MAKE) -C $(USERSPACE_DIR) clean
 	@rm -rf $(BUILD_DIR)
 	@echo "[OK]"

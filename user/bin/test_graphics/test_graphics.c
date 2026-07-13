@@ -93,6 +93,6 @@ int main(void)
     //_exit(0);
     for (;;)
     {
-        yield();
+        //yield();
     }
 }

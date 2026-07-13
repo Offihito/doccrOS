@@ -54,7 +54,6 @@
 
 void _start(void)
 {
-    serial_init();
     if (framebuffer_request.response == NULL ||
         framebuffer_request.response->framebuffer_count < 1) {
         hcf();
@@ -62,6 +61,7 @@ void _start(void)
 
     // Initialize framebuffer graphics
     struct limine_framebuffer *fb = framebuffer_request.response->framebuffers[0];
+    serial_init();
     graphics_init(fb);
     draw_logo();
 
@@ -71,7 +71,9 @@ void _start(void)
     bs.Clear(BS3);
     bs.Clear(BS4);
 
-    print("Welcome to doccrOS \n\n", white());
+    print("Welcome to ", white());
+    print("doccrOS", blue());
+    print("!\n\n", white());
 
     {
         physmem_init(memmap_request.response, hhdm_request.response);

@@ -21,10 +21,10 @@ arch_enter_usermode:
     mov rcx, rsi ; user stack top
     mov rdi, rdx ; SysV first arg
     mov r11, 0x1B; user data selector (0x18 | RPL3)
-    mov ds, r11w
-    mov es, r11w
-    mov fs, r11w
-    mov gs, r11w
+    ;mov ds, r11w
+    ;mov es, r11w
+    ;mov fs, r11w
+    ;mov gs, r11w
 
     push 0x1B ; SS
     push rcx ;  RSP
@@ -34,5 +34,11 @@ arch_enter_usermode:
     push r11   ; RFLAGS
     push 0x23  ; CS 0x20 | RPL3
     push rax   ; RIP
+
+    ;mov ax, 0x10
+    ;mov ds, ax
+    ;mov es, ax
+    ;mov fs, ax
+    ;mov gs, ax
 
     iretq
