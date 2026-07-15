@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: sys/fb.h
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -24,6 +24,7 @@
 #define FB_IOCTL_MAP         6
 #define FB_IOCTL_UNMAP       7
 #define FB_IOCTL_FLUSH       8
+#define FB_IOCTL_FLUSH_RECT  9
 
 typedef struct
 {
@@ -33,3 +34,8 @@ typedef struct
     uint32_t    bpp;
     uint64_t    size;
 } fb_info_t;
+
+typedef struct
+{
+    uint32_t x, y, width, height;
+} fb_rect_t;

@@ -22,6 +22,7 @@
 #include <kernel/arch/x86_64/idt/idt.h>
 #include <kernel/arch/x86_64/gdt/gdt.h>
 #include <kernel/screen/lib/print.h>
+#include <kernel/arch/hal/timer.h>
 
 u64 syscall_scratch[2];
 
@@ -97,6 +98,16 @@ void syscall_dispatch(cpu_state_t *state)
 	    case SYS_UNLINK:       sys_unlink(state);       break;
 	    case SYS_GETUID:       sys_getuid(state);       break;
 	    case SYS_GETGID:       sys_getgid(state);       break;
+        case SYS_CLOCK_GETTIME: {
+            struct user_timespec { i64 tv_sec; i64 tv_nsec; };
+            struct user_timespec *ts = (void *)state->rsi;
+            if (!ts || (u64)ts > 0x00007fffffffffffULL) { state->rax = (u64)-1; break; }
+            u64 ms = timer_get_ticks();
+            ts->tv_sec = (i64)(ms / 1000);
+            ts->tv_nsec = (i64)((ms % 1000) * 1000000);
+            state->rax = 0;
+            break;
+        }
         default:
             state->rax = (u64)-1;
             break;

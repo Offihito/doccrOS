@@ -31,6 +31,7 @@ typedef struct {
 static rq_t ready_q;
 static thread_t bootstrap;   // stands in for the og _start() flow before any real thread exists
 static thread_t *current;
+static thread_t *idle_thread;
 static thread_t *zombies;    // dead threads waiting to get properly buried
 static int enabled;
 static u64 ticks;
@@ -79,6 +80,7 @@ void sched_init(void)
     bootstrap.sched_next = NULL;
 
     current     = &bootstrap;
+    idle_thread = NULL;
     zombies     = NULL;
     enabled     = 0;
     ticks     = 0;
@@ -89,6 +91,21 @@ void sched_init(void)
 void sched_enable(void)
 {
     enabled = 1;
+}
+
+void sched_set_idle(thread_t *idle)
+{
+    if (!idle) return;
+    sched_remove(idle);
+    idle->state = THREAD_READY;
+    idle_thread = idle;
+}
+
+void sched_start(void)
+{
+    enabled = 1;
+    bootstrap.state = THREAD_BLOCKED;
+    sched_yield();
 }
 void sched_disable(void)
 {
@@ -164,30 +181,36 @@ void sched_yield(void) {
     reap_zombies();
     process_reap_zombies();
 
-    thread_t *prev     = current;
-    thread_t *next     = q_pop(&ready_q);
+    thread_t *prev = current;
+    thread_t *next;
 
     if (prev->state == THREAD_DEAD)
     {
         prev->sched_next     = zombies;
         zombies     = prev;
 
-    } else if (prev->state == THREAD_RUNNING)
+    }
+    else if (prev->state == THREAD_RUNNING && prev != idle_thread)
     {
-        prev->state     = THREAD_READY;
+        /* If nobody else is ready, continuing avoids a pointless switch and
+         * avoids inserting a duplicate of the running thread in ready_q. */
+        if (q_empty(&ready_q)) return;
+        prev->state = THREAD_READY;
         q_push(&ready_q, prev);
     }
 
+    next = q_pop(&ready_q);
     if (!next)
     {
-        // nobody else wants to run, just keep going if we're still alive
-        if (prev->state != THREAD_DEAD)
+        if (prev == idle_thread && prev->state == THREAD_RUNNING)
         {
-            current     = prev;
-            prev->state     = THREAD_RUNNING;
+            return;
         }
-        return;
+        next = idle_thread;
+        if (!next) return;
     }
+
+    if (next == prev) { prev->state = THREAD_RUNNING; return; }
 
     switch_count++;
     /*

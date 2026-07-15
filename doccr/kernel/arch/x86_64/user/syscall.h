@@ -35,6 +35,7 @@
 #define SYS_UNLINK         87
 #define SYS_GETUID        102
 #define SYS_GETGID        104
+#define SYS_CLOCK_GETTIME 228
 // TODO:
 // SYS_EXEC, SYS_SPAWN then here exec/spawn path.
 // dont forget the CAP system then!!

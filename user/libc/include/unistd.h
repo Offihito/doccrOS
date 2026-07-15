@@ -1,3 +1,15 @@
+/*
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * Copyright (c) 2026 doccrLabs
+ *
+ * PROJECT: doccrOS
+ * FILE: unistd.h
+ * CREATED BY: emex
+ * MODIFIED BY: Offihito
+ *
+ */
+
 #ifndef _UNISTD_H
 #define _UNISTD_H
 
@@ -22,6 +34,7 @@
 #define SYS_UNLINK       87
 #define SYS_GETUID      102
 #define SYS_GETGID      104
+#define SYS_CLOCK_GETTIME 228
 
 #define SEEK_SET        0
 #define SEEK_CUR        1
@@ -43,6 +56,8 @@ long mkdir(const char *path, int mode);
 long unlink(const char *path);
 long getdents(int fd, void *buf, size_t size);
 void *brk_call(void *addr);
+struct timespec;
+int clock_gettime(int clock_id, struct timespec *timespec);
 
 __attribute__((noreturn)) void _exit(int code);
 

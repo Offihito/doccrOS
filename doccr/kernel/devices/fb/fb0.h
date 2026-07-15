@@ -26,6 +26,7 @@
 #define FB_IOCTL_MAP         6
 #define FB_IOCTL_UNMAP       7
 #define FB_IOCTL_FLUSH       8
+#define FB_IOCTL_FLUSH_RECT  9
 
 typedef struct
 {
@@ -35,6 +36,11 @@ typedef struct
     u32 bpp;
     u64 size;
 } fb_info_t;
+
+typedef struct
+{
+    u32 x, y, width, height;
+} fb_rect_t;
 
 extern device_handler fb0_device;
 

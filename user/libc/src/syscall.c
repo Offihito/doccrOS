@@ -3,7 +3,7 @@
  *
  * Copyright (c) 2026 doccrLabs
  *
- * PROJECT: doccrOS userspace
+ * PROJECT: doccrOS
  * FILE: syscall.c
  * CREATED BY: emex
  * MODIFIED BY: Offihito
@@ -157,4 +157,9 @@ void *mmap(
 long munmap(void *addr, size_t length)
 {
     return syscall3(SYS_MUNMAP, (long)addr, (long)length, 0);
+}
+
+int clock_gettime(int clock_id, struct timespec *timespec)
+{
+    return (int)syscall3(SYS_CLOCK_GETTIME, clock_id, (long)timespec, 0);
 }

@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: init.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -19,13 +19,8 @@
 #include <kernel/screen/lib/log.h>
 #include <kernel/communication/serial.h>
 
-#define SYSTEM_PATH "/bin/hello.elf"
-#define SYSTEM_NAME "hello.elf"
-#define DESKTOP_PATH "/bin/test_graphics.elf"
-#define DESKTOP_NAME "test_graphics.elf"
-
-#define SYSCALL_TEST_PATH "/bin/syscall_test.elf"
-#define SYSCALL_TEST_NAME "syscall_test.elf"
+#define DOOM_PATH "/bin/doomgeneric.elf"
+#define DOOM_NAME "doomgeneric.elf"
 
 static void load_elf(const char *path, const char *name, u64 initial_caps)
 {
@@ -63,6 +58,5 @@ static void load_elf(const char *path, const char *name, u64 initial_caps)
 
 void user_start(void)
 {
-    load_elf(SYSTEM_PATH, SYSTEM_NAME, 0);
-    load_elf(DESKTOP_PATH, DESKTOP_NAME, CAP_FRAMEBUFFER);
+    load_elf(DOOM_PATH, DOOM_NAME, CAP_FRAMEBUFFER);
 }

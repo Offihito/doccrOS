@@ -174,6 +174,24 @@ static i64 fb0_ioctl(void *handle, u64 request, void *arg)
             bs.Flush(BS3);
             return 0;
 
+        case FB_IOCTL_FLUSH_RECT:
+        {
+            if (!arg) return -1;
+            fb_rect_t rect = *(fb_rect_t *)arg;
+            bs_screen_t *scr = &bs.Screens[BS3];
+            u32 *dst = get_framebuffer();
+            if (!dst || !scr->pixels || rect.x >= scr->width || rect.y >= scr->height)
+                return -1;
+            if (rect.width > scr->width - rect.x) rect.width = scr->width - rect.x;
+            if (rect.height > scr->height - rect.y) rect.height = scr->height - rect.y;
+            u32 dst_stride = get_fb_pitch() / sizeof(u32);
+            for (u32 y = 0; y < rect.height; y++)
+                memcpy(&dst[(rect.y + y) * dst_stride + rect.x],
+                       &scr->pixels[(rect.y + y) * scr->width + rect.x],
+                       rect.width * sizeof(u32));
+            return 0;
+        }
+
         default:
             return -1;
     }

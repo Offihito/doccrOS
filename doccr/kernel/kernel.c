@@ -103,14 +103,8 @@ void _start(void)
     if (!kproc) panic("could not create kernel proc, rip");
 
     thread_t *t_idle = thread_create(kproc, "idle", idle_fn, NULL);
-    thread_create(kproc, "worker-1",     worker_fn,     (void*)(u64)1);
-    thread_create(kproc, "worker-2",     worker_fn,     (void*)(u64)2);
-    thread_create(kproc, "worker-3",     worker_fn,     (void*)(u64)3);
-
-    //g_debug_canary_thread = t_idle;
-
-
-    sched_enable();
+    if (!t_idle) panic("could not create idle thread");
+    sched_set_idle(t_idle);
 
     vfs_init();
     rootfs_init();
@@ -120,6 +114,10 @@ void _start(void)
     kernel_devices_init();
 
     user_start();
+
+    /* All boot services and the init process now exist. Retire the bootstrap
+     * context and give userspace the CPU; idle runs only when nothing else can. */
+    sched_start();
 
     //should not reach here
     #if USE_HCF == 1

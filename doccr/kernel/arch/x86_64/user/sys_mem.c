@@ -86,23 +86,9 @@ void sys_mmap(cpu_state_t *state)
     u64 prot    = state->rdx;
     u64 flags   = state->r10;
 
-    printf(
-    	"[DEBUG mmap] hint=%p len=%lld prot=%lld flags=%lld r8=%lld r9=%lld\n",
-        (void *)hint,
-        length,
-        prot,
-        flags,
-        state->r8,
-        state->r9
-    );
-
     // not rn mate
     if (!(flags & MMAP_MAP_ANON))
     {
-        printf(
-        	"[DEBUG mmap] failed because MMAP_MAP_ANON is missing! flags=%lld\n",
-         	flags
-        );
         state->rax = (u64)-1; // MAP_ANONYMOUS or bust
         return;
     }
@@ -154,9 +140,6 @@ void sys_mmap(cpu_state_t *state)
         target_vaddr = find_free_vaddr(p->space, size);
         if (target_vaddr == 0)
         {
-            printf(
-            	"[DEBUG mmap] failed to find free virtual address range\n"
-            );
             state->rax = (u64)-1;
             return;
         }

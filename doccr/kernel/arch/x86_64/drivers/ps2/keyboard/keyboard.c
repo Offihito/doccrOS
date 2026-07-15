@@ -26,7 +26,6 @@
 #define SC_LALT     0x38
 #define SC_RELEASE  0x80
 #define SC_EXTENDED 0xE0
-#define SC_EXT_DEL  0x53
 
 static const u8 sc_to_key[128] = {
     [0x01]=KEY_ESC,
@@ -44,7 +43,31 @@ static const u8 sc_to_key[128] = {
     [0x31]=KEY_N, [0x32]=KEY_M,
     [0x33]=KEY_COMMA, [0x34]=KEY_DOT, [0x35]=KEY_SLASH, [0x36]=KEY_RSHIFT,
     [0x37]=KEY_KP_ASTERISK, [0x38]=KEY_LALT, [0x39]=KEY_SPACE, [0x3A]=KEY_CAPSLOCK,
+    [0x3B]=KEY_F1, [0x3C]=KEY_F2, [0x3D]=KEY_F3, [0x3E]=KEY_F4,
+    [0x3F]=KEY_F5, [0x40]=KEY_F6, [0x41]=KEY_F7, [0x42]=KEY_F8,
+    [0x43]=KEY_F9, [0x44]=KEY_F10, [0x57]=KEY_F11, [0x58]=KEY_F12,
 };
+
+static u8 extended_to_key(u8 make)
+{
+    switch (make) {
+        case 0x1C: return KEY_KP_ENTER;
+        case 0x1D: return KEY_RCTRL;
+        case 0x35: return KEY_KP_SLASH;
+        case 0x38: return KEY_RALT;
+        case 0x47: return KEY_HOME;
+        case 0x48: return KEY_UP;
+        case 0x49: return KEY_PAGEUP;
+        case 0x4B: return KEY_LEFT;
+        case 0x4D: return KEY_RIGHT;
+        case 0x4F: return KEY_END;
+        case 0x50: return KEY_DOWN;
+        case 0x51: return KEY_PAGEDOWN;
+        case 0x52: return KEY_INSERT;
+        case 0x53: return KEY_DELETE;
+        default: return KEY_NONE;
+    }
+}
 
 static volatile int shift_held   = 0;
 static volatile int ctrl_held = 0;
@@ -81,8 +104,11 @@ static void keyboard_irq_handler(cpu_state_t *state)
 
     if (extended_key) {
         extended_key = 0;
-        if (make == SC_EXT_DEL)
-            input_report_key(KEY_DELETE, pressed, build_modifiers());
+        u8 code = extended_to_key(make);
+        if (code == KEY_RCTRL) ctrl_held = pressed;
+        if (code == KEY_RALT) alt_held = pressed;
+        if (code != KEY_NONE)
+            input_report_key(code, pressed, build_modifiers());
         return;
     }
 

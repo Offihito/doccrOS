@@ -23,8 +23,16 @@ ARCH_SRCS := $(shell find $(ARCH_DIR) -name "*.c" -or -name "*.cpp" -or -name "*
 SRCS = $(COMMON_SRCS) $(ARCH_SRCS)
 OBJS = $(SRCS:%=$(BUILD_DIR)/%.o)
 
-.PHONY: all fetchDeps disk run clean
+.PHONY: all fetchDeps doom-deps doom-wad-check disk run clean
 all: $(ISO)
+
+DOOM_WAD ?= doom1.wad
+
+doom-deps:
+	@test -d external/doomgeneric/.git || git clone --depth 1 https://github.com/ozkl/doomgeneric.git external/doomgeneric
+
+doom-wad-check:
+	@test -f "$(DOOM_WAD)" || { echo "[DOOM] missing $(DOOM_WAD); copy your legally obtained doom1.wad to the repository root"; exit 1; }
 
 userspace:
 	@$(MAKE) -C $(USERSPACE_DIR) clean
@@ -61,7 +69,7 @@ $(BUILD_DIR)/kernel.elf: $(ARCH_DIR)/linker.ld $(OBJS)
 	$(VLD) $(LDFLAGS) -T $< $(OBJS) -o $@
 
 # Create bootable ISO
-$(ISO): limine.conf build_num $(BUILD_DIR)/kernel.elf disk userspace
+$(ISO): doom-wad-check limine.conf build_num $(BUILD_DIR)/kernel.elf disk userspace
 	@echo "[ISO] Creating bootable image..."
 	@rm -rf $(ISODIR)
 	@mkdir -p $(ISODIR)/boot/limine $(ISODIR)/EFI/BOOT
@@ -75,6 +83,8 @@ $(ISO): limine.conf build_num $(BUILD_DIR)/kernel.elf disk userspace
 	@cp $(USERSPACE_DIR)/bin/fork_test/fork_test.elf $(DISK_DIR)/rd/bin/
 	@cp $(USERSPACE_DIR)/bin/syscall_test/syscall_test.elf $(DISK_DIR)/rd/bin/
 	@cp $(USERSPACE_DIR)/bin/test_graphics/test_graphics.elf $(DISK_DIR)/rd/bin/
+	@cp $(USERSPACE_DIR)/bin/doomgeneric/doomgeneric.elf $(DISK_DIR)/rd/bin/
+	@cp "$(DOOM_WAD)" $(DISK_DIR)/rd/doom1.wad
 
 	@echo "[MK] creating initrd.cpio..."
 	@chmod +x tools/initrd.sh

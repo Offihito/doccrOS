@@ -101,6 +101,7 @@ void sys_write(cpu_state_t *state)
     u64 fd        = state->rdi;
     const char *buf = (const char *)state->rsi;
     u64 len       = state->rdx;
+    proc_t *p     = process_get_current();
 
     if (!user_ptr_ok((u64)buf))
     {
@@ -110,9 +111,13 @@ void sys_write(cpu_state_t *state)
 
     if (fd == 1 || fd == 2)
     {
+        int owns_framebuffer = p && process_has_cap(p, CAP_FRAMEBUFFER);
         for (u64 i = 0; i < len; i++)
         {
-            putchar(buf[i], white());
+            /* A graphics server owns the display contents. Keep its console
+             * output on serial so text rendering and full-screen scrolling do
+             * not destroy the framebuffer or stall application startup. */
+            if (!owns_framebuffer) putchar(buf[i], white());
             serial_putchar(buf[i]);
         }
         state->rax = len;
@@ -125,7 +130,6 @@ void sys_write(cpu_state_t *state)
         return;
     }
 
-    proc_t *p = process_get_current();
     if (!p || !p->fd_table[fd].used)
     {
         state->rax = (u64)-1;

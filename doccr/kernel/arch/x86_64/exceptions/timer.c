@@ -48,18 +48,6 @@ void timer_handler(cpu_state_t* state)
     if (sched_is_enabled()) {
         sched_tick();
 
-        if (timer_ticks % TIMER_FREQUENCY == 0)
-        {
-            thread_t *cur = sched_current();
-            printf(
-                "[SCHED-STATUS] uptime=%llus ticks=%llu switches=%llu current='%s'(tid=%llu)\n",
-                timer_get_seconds(),
-                sched_get_ticks(),
-                sched_get_switch_count(),
-                cur->name,
-                cur->tid
-            );
-        }
     }
 }
 

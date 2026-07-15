@@ -1,3 +1,15 @@
+/*
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * Copyright (c) 2026 doccrLabs
+ *
+ * PROJECT: doccrOS
+ * FILE: stdint.h
+ * CREATED BY: emex
+ * MODIFIED BY: Offihito
+ *
+ */
+
 #pragma once
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -9,6 +21,8 @@ typedef signed int int32_t;
 typedef signed long long int64_t;
 typedef unsigned long uintptr_t;
 typedef long intptr_t;
+typedef long long intmax_t;
+typedef unsigned long long uintmax_t;
 #define UINT8_MAX  255U
 #define UINT16_MAX 65535U
 #define UINT32_MAX 4294967295U

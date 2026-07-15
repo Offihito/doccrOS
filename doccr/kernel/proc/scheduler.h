@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: scheduler.h
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -23,6 +23,8 @@ thread_t *sched_current(void);
 void sched_init(void);
 void sched_enable(void);
 void sched_disable(void);
+void sched_set_idle(thread_t *idle);
+void sched_start(void);
 int sched_is_enabled(void);
 
 void sched_add(thread_t *t);
