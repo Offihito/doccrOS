@@ -16,5 +16,6 @@
 #define PS2_H
 
 #include "keyboard/keyboard.h"
+#include "mouse/mouse.h"
 
 #endif

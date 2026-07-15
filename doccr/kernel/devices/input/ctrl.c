@@ -6,12 +6,13 @@
  * PROJECT: doccrOS
  * FILE: ctrl.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
 #include "ctrl.h"
 #include "kbd.h"
+#include "mouse.h"
 #include <kernel/screen/lib/log.h>
 
 void input_ctrl_init(void)
@@ -30,16 +31,31 @@ void input_report_key(u16 code, int pressed, u8 modifiers)
     input_dispatch(&ev);
 }
 
+void input_report_rel(u16 axis, i32 value)
+{
+    input_event_t ev = {
+        .type = INPUT_EV_REL,
+        .code = axis,
+        .value = value,
+        .modifiers = 0,
+    };
+    input_dispatch(&ev);
+}
+
 void input_dispatch(const input_event_t *ev)
 {
     switch (ev->type)
     {
         case INPUT_EV_KEY:
-            kbd_push_event(ev);
+            if (ev->code >= INPUT_BTN_LEFT && ev->code <= INPUT_BTN_MIDDLE)
+                mouse_push_event(ev);
+            else
+                kbd_push_event(ev);
             break;
 
-        // mouse in future here ig
         case INPUT_EV_REL:
+            mouse_push_event(ev);
+            break;
         case INPUT_EV_ABS:
         default:
             break;

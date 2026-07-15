@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: irq.c
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -113,6 +113,13 @@ void irq_set_mask(u8 irq, int enable)
 {
     u16 port;
     u8 value;
+
+    /* Slave PIC interrupts reach the CPU through master IRQ2. */
+    if (irq >= 8 && !enable) {
+        u8 master_mask = inb(PIC1_DATA);
+        outb(PIC1_DATA, master_mask & (u8)~(1 << 2));
+        io_wait();
+    }
 
     if (irq < 8) {
         port = PIC1_DATA;
