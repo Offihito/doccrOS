@@ -43,6 +43,7 @@ context_switch:
     ret                
 
 thread_trampoline:
+    sti
     mov rdi, r13
     call r12
     call thread_exit

@@ -20,7 +20,12 @@
 extern void thread_trampoline(void);
 extern void user_thread_trampoline(void);
 
-#define INITIAL_RFLAGS 0x202 // IF=1 (interrupts on) + the reserved bit that always has to be 1
+/*
+ * A new context must not enable interrupts in context_switch's popfq/ret
+ * window. Kernel threads enable them in thread_trampoline; user threads get
+ * IF from the iretq frame built by arch_enter_usermode.
+ */
+#define INITIAL_RFLAGS 0x2
 
 static u64 next_tid = 1;
 

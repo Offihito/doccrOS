@@ -81,13 +81,13 @@ void gdt_init(void)
     gdt_set_gate( // kernel data Segment (0x10)
         2, 0, 0xFFFFF,
         GDT_PRESENT  | GDT_RING0     | GDT_CODE_DATA |                  GDT_RW,
-        GDT_GRANULAR
+        GDT_GRANULAR | GDT_32BIT
     );
 
     gdt_set_gate( // user data Segment (0x18)
         3, 0, 0xFFFFF,
         GDT_PRESENT  | GDT_RING3     | GDT_CODE_DATA |                  GDT_RW,
-        GDT_GRANULAR
+        GDT_GRANULAR | GDT_32BIT
     );
 
     gdt_set_gate( // user code Segment (0x20)

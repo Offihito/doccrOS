@@ -74,10 +74,12 @@ syscall_entry:
     pop rcx
     add rsp, 8
     pop r11
-    add rsp, 16
 
     cli
-    mov rsp, [syscall_scratch + 0]
+    ; RSP is part of this thread's saved syscall frame. Do not reload it
+    ; from the global entry scratch slot: another thread may have used that
+    ; slot while this syscall was suspended in SYS_YIELD.
+    mov rsp, [rsp]
     o64 sysret
 
 %define FORK_R15     88
