@@ -46,8 +46,15 @@ static void syscall_enable(void)
     u64 efer = rdmsr(MSR_EFER);
     wrmsr(MSR_EFER, efer | EFER_SCE);
 
+    /*
+     * SYSCALL loads kernel CS from STAR[47:32]. SYSRET derives user SS
+     * as STAR[63:48] + 8 and user CS as STAR[63:48] + 16. Keep RPL=3
+     * in the base selector so SYSRET produces SS=0x1b and CS=0x23; an
+     * SS of 0x18 is rejected by iretq when an IRQ returns to CPL 3.
+     */
+    const u64 user_sysret_base = (USER_DATA_SELECTOR - 8) | 3;
     u64 star = ((u64)KERNEL_CODE_SELECTOR << 32) |
-               ((u64)KERNEL_DATA_SELECTOR << 48);
+               (user_sysret_base << 48);
     wrmsr(MSR_STAR, star);
 
     wrmsr(MSR_LSTAR, (u64)syscall_entry);
