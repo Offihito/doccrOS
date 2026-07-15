@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: input.h
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -22,6 +22,12 @@ typedef enum {
     INPUT_EV_REL,
     INPUT_EV_ABS,
 } input_event_type_t;
+
+#define INPUT_REL_X 0
+#define INPUT_REL_Y 1
+#define INPUT_BTN_LEFT 0x110
+#define INPUT_BTN_RIGHT 0x111
+#define INPUT_BTN_MIDDLE 0x112
 
 #define INPUT_MOD_SHIFT (1 << 0)
 #define INPUT_MOD_CTRL (1 << 1)

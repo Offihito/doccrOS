@@ -6,7 +6,7 @@
  * PROJECT: doccrOS
  * FILE: ctrl.h
  * CREATED BY: emex
- * MODIFIED BY: --
+ * MODIFIED BY: Offihito
  *
  */
 
@@ -17,6 +17,7 @@
 
 void input_ctrl_init(void);
 void input_report_key(u16 code, int pressed, u8 modifiers);
+void input_report_rel(u16 axis, i32 value);
 void input_dispatch(const input_event_t *ev);
 
 #endif
